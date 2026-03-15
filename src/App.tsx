@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Printer, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Printer, AlertTriangle, ChevronDown, ChevronUp, Settings } from 'lucide-react';
+import { EmpreendimentosManager, EmpreendimentoData, defaultEmpreendimentos } from './components/EmpreendimentosManager';
 
 // --- Utilities ---
 const formatCurrency = (value: number) => {
@@ -278,6 +279,19 @@ const PosSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
 
 export default function App() {
   // State
+  const [empreendimentosList, setEmpreendimentosList] = useState<EmpreendimentoData[]>(() => {
+    const saved = localStorage.getItem('empreendimentosList');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return defaultEmpreendimentos;
+      }
+    }
+    return defaultEmpreendimentos;
+  });
+  const [showEmpManager, setShowEmpManager] = useState(false);
+
   const [empreendimento, setEmpreendimento] = useState('Lumina Fatima');
   const [unidade, setUnidade] = useState('BL-B-0802 - Tipologia: Tipo 3Q C/S');
   const [dataEntrega, setDataEntrega] = useState('2028-06-30');
@@ -435,7 +449,7 @@ export default function App() {
         <div className="max-w-6xl mx-auto px-4 flex flex-col items-center">
           {!imageError ? (
             <img 
-              src="/logo_grupodirecional.png" 
+              src="/logo_groupdirectional.png" 
               alt="Direcional e Riva Incorporadora" 
               className="h-24 object-contain mb-2"
               onError={() => setImageError(true)}
@@ -486,7 +500,31 @@ export default function App() {
         <div className="bg-white border-2 border-gray-800 overflow-hidden shadow-sm">
           <div className="grid grid-cols-[1fr_2fr] border-b border-gray-300">
             <div className="bg-gray-100 p-1.5 text-right font-semibold text-sm border-r border-gray-300 flex items-center justify-end">Empreendimento:</div>
-            <div className="p-1.5"><input type="text" value={empreendimento} onChange={e => setEmpreendimento(e.target.value)} className="w-full outline-none bg-transparent" /></div>
+            <div className="p-1.5 flex items-center gap-2">
+              <select 
+                value={empreendimento} 
+                onChange={e => {
+                  setEmpreendimento(e.target.value);
+                  const emp = empreendimentosList.find(x => x.nome === e.target.value);
+                  if (emp) setDataEntrega(emp.dataEntrega);
+                }} 
+                className="w-full outline-none bg-transparent"
+              >
+                {empreendimentosList.map(emp => (
+                  <option key={emp.id} value={emp.nome}>{emp.nome}</option>
+                ))}
+                {!empreendimentosList.find(x => x.nome === empreendimento) && (
+                  <option value={empreendimento}>{empreendimento}</option>
+                )}
+              </select>
+              <button 
+                onClick={() => setShowEmpManager(true)} 
+                className="print:hidden text-gray-500 hover:text-blue-600 p-1 rounded hover:bg-gray-100"
+                title="Gerenciar Empreendimentos"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+            </div>
           </div>
           <div className="grid grid-cols-[1fr_2fr] border-b border-gray-300">
             <div className="bg-gray-100 p-1.5 text-right font-semibold text-sm border-r border-gray-300 flex items-center justify-end">Unidade:</div>
@@ -838,6 +876,16 @@ export default function App() {
           </div>
         </div>
       )}
+
+      <EmpreendimentosManager 
+        isOpen={showEmpManager}
+        onClose={() => setShowEmpManager(false)}
+        empreendimentos={empreendimentosList}
+        onSave={(newList) => {
+          setEmpreendimentosList(newList);
+          localStorage.setItem('empreendimentosList', JSON.stringify(newList));
+        }}
+      />
     </div>
   );
 }
