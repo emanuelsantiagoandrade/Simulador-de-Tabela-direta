@@ -1,0 +1,5 @@
+{
+  "name": "Simulador Tabela Direta",
+  "description": "Aplicativo para simulação de plano de pagamento de imóveis (Tabela Direta) com cálculo automático de parcelas, sinais e balões.",
+  "requestFramePermissions": []
+}
