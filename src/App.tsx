@@ -371,6 +371,8 @@ export default function App() {
     setPosPercent(current.pos);
   };
 
+  const [imageError, setImageError] = useState(false);
+
   // Auto-calculate months until delivery when delivery date changes
   useEffect(() => {
     if (dataEntrega) {
@@ -431,30 +433,25 @@ export default function App() {
       {/* Header */}
       <header className="bg-white shadow-sm py-6 mb-6 print:shadow-none print:py-2 print:mb-4">
         <div className="max-w-6xl mx-auto px-4 flex flex-col items-center">
-          <img 
-            src="/logo_grupodirecional.png" 
-            alt="Direcional e Riva Incorporadora" 
-            className="h-24 object-contain mb-2"
-            onError={(e) => {
-              // Fallback se a imagem não for encontrada
-              e.currentTarget.style.display = 'none';
-              const fallback = document.getElementById('logo-fallback');
-              if (fallback) fallback.style.display = 'flex';
-            }}
-          />
-          <div id="logo-fallback" className="hidden flex-col items-center mb-2">
-            <div className="flex items-center gap-4 mb-1">
-              <h1 className="text-4xl font-extrabold text-[#003366] tracking-tighter italic">DIRECIONAL</h1>
+          {!imageError ? (
+            <img 
+              src="/logo_grupodirecional.png" 
+              alt="Direcional e Riva Incorporadora" 
+              className="h-24 object-contain mb-2"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="flex flex-col items-center mb-2">
+              <div className="flex items-center gap-4 mb-1">
+                <h1 className="text-4xl font-extrabold text-[#003366] tracking-tighter italic">DIRECIONAL</h1>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-3xl font-bold text-[#003366] italic">R</span>
+                <span className="text-2xl font-bold text-gray-700 tracking-widest">RIVA</span>
+                <span className="text-[10px] font-normal text-gray-500 tracking-widest mt-1">INCORPORADORA</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-3xl font-bold text-[#003366] italic">R</span>
-              <span className="text-2xl font-bold text-gray-700 tracking-widest">RIVA</span>
-              <span className="text-[10px] font-normal text-gray-500 tracking-widest mt-1">INCORPORADORA</span>
-            </div>
-            <p className="text-xs text-red-500 mt-2 print:hidden">
-              (Faça o upload do arquivo "logo_grupodirecional.png" na pasta "public" no painel esquerdo para ver a imagem)
-            </p>
-          </div>
+          )}
           <h2 className="text-2xl mt-4 text-gray-800 print:mt-2">Plano de pagamento <span className="font-bold">Tabela Direta</span></h2>
         </div>
       </header>
