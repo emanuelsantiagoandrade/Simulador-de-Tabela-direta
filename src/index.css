@@ -1,1 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-slate-900 antialiased;
+  }
+
+  @media print {
+    html, body {
+      height: auto;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: visible !important;
+      background: white !important;
+    }
+    
+    /* Force content to fit on one page */
+    #root {
+      transform: scale(0.9);
+      transform-origin: top center;
+      width: 105%; /* Reduced to ensure it fits within margins */
+      padding-top: 2cm !important; /* More space for logo at the top */
+    }
+
+    /* Remove browser headers/footers */
+    @page {
+      margin: 0.5cm;
+      size: auto;
+    }
+    
+    /* Adjust input heights for print */
+    input, select, textarea {
+      padding-top: 2px !important;
+      padding-bottom: 2px !important;
+    }
+
+    .shadow-sm, .shadow-md, .shadow-lg {
+      box-shadow: none !important;
+    }
+  }
+}
+
+/* Custom scrollbar for a cleaner look */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

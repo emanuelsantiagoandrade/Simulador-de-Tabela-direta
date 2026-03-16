@@ -51,7 +51,7 @@ const CurrencyInput = ({ value, onChange, className = '', readOnly = false }: an
       onFocus={!readOnly ? handleFocus : undefined}
       onBlur={!readOnly ? handleBlur : undefined}
       readOnly={readOnly}
-      className={`w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 outline-none text-right ${readOnly ? 'bg-gray-50 text-gray-600 cursor-not-allowed' : 'bg-white'} ${className}`}
+      className={`w-full px-2 py-1 print:px-1 print:py-0 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 outline-none text-right ${readOnly ? 'bg-white text-gray-600 cursor-not-allowed' : 'bg-white'} ${className}`}
     />
   );
 };
@@ -65,7 +65,7 @@ const PercentInput = ({ value, onChange, className = '', readOnly = false }: any
         onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
         readOnly={readOnly}
         step="0.01"
-        className={`w-full px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 outline-none text-right pr-6 ${readOnly ? 'bg-gray-50 text-gray-600' : 'bg-white'} ${className}`}
+        className={`w-full px-2 py-1 print:px-1 print:py-0 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 outline-none text-right pr-8 ${readOnly ? 'bg-white text-gray-600' : 'bg-white'} ${className}`}
       />
       <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 font-medium">%</span>
     </div>
@@ -76,11 +76,10 @@ const PreSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
   const [isOpen, setIsOpen] = useState(false);
   const [inccSimulado, setInccSimulado] = useState(0.3);
 
-  if (parcelas <= 0 || valorBase <= 0) return null;
-
   const getSimulatedInstallments = () => {
     const list = [];
-    let currentDate = new Date(dataInicio + 'T12:00:00');
+    const baseDate = dataInicio ? new Date(dataInicio + 'T12:00:00') : null;
+    let currentDate = baseDate ? new Date(baseDate) : null;
     
     for (let i = 1; i <= parcelas; i++) {
       // Cálculo: valorBase * (1 + INCC)^meses
@@ -89,12 +88,14 @@ const PreSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
       
       list.push({
         numero: i,
-        data: currentDate.toLocaleDateString('pt-BR'),
+        data: currentDate ? currentDate.toLocaleDateString('pt-BR') : '---',
         valor: valorAjustado
       });
 
       // Adiciona 1 mês
-      currentDate.setMonth(currentDate.getMonth() + 1);
+      if (currentDate) {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+      }
     }
     return list;
   };
@@ -102,13 +103,13 @@ const PreSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
   const installments = getSimulatedInstallments();
 
   return (
-    <div className="border-2 border-gray-800 shadow-sm bg-white mt-6 print:hidden">
+    <div className="border border-slate-200 shadow-sm bg-white print:hidden rounded-xl overflow-hidden">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-gray-100 p-3 font-bold text-center border-b border-gray-800 text-lg flex items-center justify-between hover:bg-gray-200 transition-colors"
+        className="w-full bg-white p-2 font-bold text-center border-b border-slate-200 text-sm flex items-center justify-between hover:bg-slate-50 transition-colors"
       >
         <span>Simulação das Parcelas Pré-Chaves (INCC)</span>
-        {isOpen ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
+        {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
       </button>
       
       {isOpen && (
@@ -124,7 +125,7 @@ const PreSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 bg-gray-50 p-3 rounded border border-gray-200">
+          <div className="flex flex-wrap items-center gap-4 bg-white p-3 rounded border border-gray-200">
             <div className="flex items-center gap-4">
               <label className="font-semibold text-gray-700 text-sm">
                 INCC Simulado (ao mês):
@@ -140,7 +141,7 @@ const PreSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
 
           <div className="max-h-96 overflow-y-auto border border-gray-300 rounded">
             <table className="w-full text-sm text-center">
-              <thead className="bg-gray-100 sticky top-0 shadow-sm">
+              <thead className="bg-white sticky top-0 shadow-sm">
                 <tr>
                   <th className="p-2 border-b border-r border-gray-300">Parcela</th>
                   <th className="p-2 border-b border-r border-gray-300">Data</th>
@@ -168,11 +169,10 @@ const PosSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
   const [isOpen, setIsOpen] = useState(false);
   const [ipcaSimulado, setIpcaSimulado] = useState(0.5);
 
-  if (parcelas <= 0 || valorBase <= 0) return null;
-
   const getSimulatedInstallments = () => {
     const list = [];
-    let currentDate = new Date(dataInicio + 'T12:00:00');
+    const baseDate = dataInicio ? new Date(dataInicio + 'T12:00:00') : null;
+    let currentDate = baseDate ? new Date(baseDate) : null;
     let saldoDevedor = valorBase * parcelas; // Saldo devedor inicial é o total do Pós
     
     for (let i = 1; i <= parcelas; i++) {
@@ -190,7 +190,7 @@ const PosSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
       
       list.push({
         numero: i,
-        data: currentDate.toLocaleDateString('pt-BR'),
+        data: currentDate ? currentDate.toLocaleDateString('pt-BR') : '---',
         valor: valorParcela,
         juros: juros,
         amortizacao: amortizacao,
@@ -201,7 +201,9 @@ const PosSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
       saldoDevedor -= amortizacao;
       
       // Adiciona 1 mês
-      currentDate.setMonth(currentDate.getMonth() + 1);
+      if (currentDate) {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+      }
     }
     return list;
   };
@@ -209,13 +211,13 @@ const PosSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
   const installments = getSimulatedInstallments();
 
   return (
-    <div className="border-2 border-gray-800 shadow-sm bg-white mt-6 print:hidden">
+    <div className="border border-slate-200 shadow-sm bg-white print:hidden rounded-xl overflow-hidden">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-gray-100 p-3 font-bold text-center border-b border-gray-800 text-lg flex items-center justify-between hover:bg-gray-200 transition-colors"
+        className="w-full bg-white p-2 font-bold text-center border-b border-slate-200 text-sm flex items-center justify-between hover:bg-slate-50 transition-colors"
       >
         <span>Simulação das Parcelas Pós-Chaves (Tabela SAC)</span>
-        {isOpen ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
+        {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
       </button>
       
       {isOpen && (
@@ -231,7 +233,7 @@ const PosSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 bg-gray-50 p-3 rounded border border-gray-200">
+          <div className="flex flex-wrap items-center gap-4 bg-white p-3 rounded border border-gray-200">
             <div className="flex items-center gap-4">
               <label className="font-semibold text-gray-700 text-sm">
                 IPCA Simulado (ao mês):
@@ -247,7 +249,7 @@ const PosSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
 
           <div className="max-h-96 overflow-y-auto border border-gray-300 rounded">
             <table className="w-full text-sm text-center">
-              <thead className="bg-gray-100 sticky top-0 shadow-sm">
+              <thead className="bg-white sticky top-0 shadow-sm">
                 <tr>
                   <th className="p-2 border-b border-r border-gray-300">Parcela</th>
                   <th className="p-2 border-b border-r border-gray-300">Data</th>
@@ -292,97 +294,111 @@ export default function App() {
   });
   const [showEmpManager, setShowEmpManager] = useState(false);
 
-  const [empreendimento, setEmpreendimento] = useState('Lumina Fatima');
-  const [unidade, setUnidade] = useState('BL-B-0802 - Tipologia: Tipo 3Q C/S');
-  const [dataEntrega, setDataEntrega] = useState('2028-06-30');
-  const [mesesAteEntrega, setMesesAteEntrega] = useState(27);
+  const [empreendimento, setEmpreendimento] = useState('');
+  const [unidade, setUnidade] = useState('');
+  const [dataEntrega, setDataEntrega] = useState('');
+  const [mesesAteEntrega, setMesesAteEntrega] = useState(0);
 
-  const [valorUnidade, setValorUnidade] = useState(533568.00);
+  const [valorUnidade, setValorUnidade] = useState(0);
   const [descontos, setDescontos] = useState(0);
 
   const [atoPercent, setAtoPercent] = useState(10);
   const [sinais, setSinais] = useState([
-    { id: 1, label: 'Ato 1', valor: 53356.80, data: '2026-03-15' },
-    { id: 2, label: 'Sinal 1', valor: 0, data: '2026-04-15' },
-    { id: 3, label: 'Sinal 2', valor: 0, data: '2026-05-15' },
-    { id: 4, label: 'Sinal 3', valor: 0, data: '2026-06-15' },
+    { id: 1, label: 'Ato 1', valor: 0, data: new Date().toISOString().split('T')[0] },
+    { id: 2, label: 'Sinal 1', valor: 0, data: '' },
+    { id: 3, label: 'Sinal 2', valor: 0, data: '' },
+    { id: 4, label: 'Sinal 3', valor: 0, data: '' },
   ]);
 
   const [baloesPercent, setBaloesPercent] = useState(0);
   const [baloes, setBaloes] = useState([
-    { id: 1, valor: 0, data: '2026-12-15' },
-    { id: 2, valor: 0, data: '2027-12-15' },
+    { id: 1, valor: 0, data: '' },
+    { id: 2, valor: 0, data: '' },
     { id: 3, valor: 0, data: '' },
     { id: 4, valor: 0, data: '' },
     { id: 5, valor: 0, data: '' },
+    { id: 6, valor: 0, data: '' },
+    { id: 7, valor: 0, data: '' },
+    { id: 8, valor: 0, data: '' },
+    { id: 9, valor: 0, data: '' },
+    { id: 10, valor: 0, data: '' },
+    { id: 11, valor: 0, data: '' },
+    { id: 12, valor: 0, data: '' },
+    { id: 13, valor: 0, data: '' },
+    { id: 14, valor: 0, data: '' },
+    { id: 15, valor: 0, data: '' },
   ]);
 
   const [prePercent, setPrePercent] = useState(30);
-  const [preParcelas, setPreParcelas] = useState(26);
-  const [preDataInicio, setPreDataInicio] = useState('2026-07-15');
+  const [preParcelas, setPreParcelas] = useState(0);
+  const [preDataInicio, setPreDataInicio] = useState(() => {
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    nextMonth.setDate(15);
+    return nextMonth.toISOString().split('T')[0];
+  });
 
   const [posPercent, setPosPercent] = useState(60);
   const [posParcelas, setPosParcelas] = useState(120);
-  const [posDataInicio, setPosDataInicio] = useState('2029-05-15');
+  const [posDataInicio, setPosDataInicio] = useState('');
 
   const [showPrintModal, setShowPrintModal] = useState(false);
 
   // Handlers for percentage changes to maintain 40% pre-keys logic and 60% pos-keys logic
   const handlePercentChange = (source: 'ato' | 'pre' | 'baloes' | 'pos', newVal: number) => {
-    if (source === 'pos' && newVal > 60) newVal = 60;
+    let ato = atoPercent;
+    let pre = prePercent;
+    let baloes = baloesPercent;
+    let pos = posPercent;
 
-    let current = {
-      ato: atoPercent,
-      pre: prePercent,
-      baloes: baloesPercent,
-      pos: posPercent
-    };
-
-    const diff = newVal - current[source];
-    current[source] = newVal;
-
-    let remaining = diff;
-
-    if (remaining > 0) {
-      let order: ('ato' | 'pre' | 'baloes' | 'pos')[] = [];
-      if (source === 'pre') order = ['pos', 'baloes', 'ato'];
-      else if (source === 'ato') order = ['pos', 'pre', 'baloes'];
-      else if (source === 'baloes') order = ['pos', 'pre', 'ato'];
-      else if (source === 'pos') order = ['pre', 'baloes', 'ato'];
-
-      for (const key of order) {
-        if (remaining <= 0) break;
-        const take = Math.min(current[key], remaining);
-        current[key] -= take;
-        remaining -= take;
-      }
-    } else if (remaining < 0) {
-      let toAdd = -remaining;
-      let order: ('ato' | 'pre' | 'baloes' | 'pos')[] = [];
-      
-      if (source === 'pre') order = ['pos', 'baloes', 'ato'];
-      else if (source === 'ato') order = ['pos', 'pre', 'baloes'];
-      else if (source === 'baloes') order = ['pos', 'pre', 'ato'];
-      else if (source === 'pos') order = ['pre', 'baloes', 'ato'];
-
-      for (const key of order) {
-        if (toAdd <= 0) break;
-        if (key === 'pos') {
-          const space = Math.max(0, 60 - current.pos);
-          const add = Math.min(space, toAdd);
-          current.pos += add;
-          toAdd -= add;
-        } else {
-          current[key] += toAdd;
-          toAdd = 0;
-        }
-      }
+    if (source === 'ato') {
+      ato = newVal;
+      // Ato mexe no Pré para manter o equilíbrio de 100%
+      pre = 100 - ato - baloes - pos;
+    } else if (source === 'baloes') {
+      baloes = newVal;
+      // Balões mexe no Pré para manter o equilíbrio de 100%
+      pre = 100 - ato - baloes - pos;
+    } else if (source === 'pre') {
+      pre = newVal;
+      // Pré mexe no Pós (Regra: tudo que for colocado a mais no pré deve ser subtraído do pós)
+      pos = 100 - ato - baloes - pre;
+    } else if (source === 'pos') {
+      pos = newVal;
+      // Pós mexe no Pré para manter o equilíbrio de 100%
+      pre = 100 - ato - baloes - pos;
     }
 
-    setAtoPercent(current.ato);
-    setPrePercent(current.pre);
-    setBaloesPercent(current.baloes);
-    setPosPercent(current.pos);
+    // --- Ajustes de Segurança (Apenas para evitar valores negativos absurdos) ---
+    
+    // Se o campo de ajuste (o que não foi editado) ficar negativo, 
+    // tentamos compensar nos outros campos para manter os 100%
+    if (pre < 0 && source !== 'pre') {
+      pos += pre;
+      pre = 0;
+    }
+    if (pos < 0 && source !== 'pos') {
+      pre += pos;
+      pos = 0;
+    }
+
+    // Garante que os valores finais não sejam negativos
+    ato = Math.max(0, ato);
+    pre = Math.max(0, pre);
+    baloes = Math.max(0, baloes);
+    pos = Math.max(0, pos);
+
+    // Ajuste final para garantir soma 100% exata
+    const soma = ato + pre + baloes + pos;
+    if (Math.abs(soma - 100) > 0.01) {
+      if (source === 'pre') pos = Number((100 - ato - baloes - pre).toFixed(2));
+      else pre = Number((100 - ato - baloes - pos).toFixed(2));
+    }
+
+    setAtoPercent(Number(ato.toFixed(2)));
+    setPrePercent(Number(pre.toFixed(2)));
+    setBaloesPercent(Number(baloes.toFixed(2)));
+    setPosPercent(Number(pos.toFixed(2)));
   };
 
   const [imageError, setImageError] = useState(false);
@@ -400,6 +416,12 @@ export default function App() {
       if (totalMonths < 0) totalMonths = 0;
       
       setMesesAteEntrega(totalMonths);
+
+      // Set default posDataInicio to the month after delivery
+      const posDate = new Date(deliveryDate);
+      posDate.setMonth(posDate.getMonth() + 1);
+      posDate.setDate(15); // Standard day 15
+      setPosDataInicio(posDate.toISOString().split('T')[0]);
     }
   }, [dataEntrega]);
 
@@ -443,34 +465,34 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32 font-sans text-gray-900">
+    <div className="min-h-screen bg-white pb-32 font-sans text-gray-900">
       {/* Header */}
-      <header className="bg-white shadow-sm py-6 mb-6 print:shadow-none print:py-2 print:mb-4">
+      <header className="bg-white shadow-sm py-10 mb-16 print:shadow-none print:py-6 print:mb-10">
         <div className="max-w-6xl mx-auto px-4 flex flex-col items-center">
           {!imageError ? (
             <img 
               src="/logo_groupdirectional.png" 
               alt="Direcional e Riva Incorporadora" 
-              className="h-24 object-contain mb-2"
+              className="h-40 object-contain mb-6 print:h-32 print:mb-4"
               onError={() => setImageError(true)}
             />
           ) : (
-            <div className="flex flex-col items-center mb-2">
+            <div className="flex flex-col items-center mb-6 print:mb-4">
               <div className="flex items-center gap-4 mb-1">
-                <h1 className="text-4xl font-extrabold text-[#003366] tracking-tighter italic">DIRECIONAL</h1>
+                <h1 className="text-6xl font-extrabold text-[#003366] tracking-tighter italic print:text-4xl">DIRECIONAL</h1>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-3xl font-bold text-[#003366] italic">R</span>
-                <span className="text-2xl font-bold text-gray-700 tracking-widest">RIVA</span>
-                <span className="text-[10px] font-normal text-gray-500 tracking-widest mt-1">INCORPORADORA</span>
+                <span className="text-5xl font-bold text-[#003366] italic print:text-3xl">R</span>
+                <span className="text-4xl font-bold text-gray-700 tracking-widest print:text-2xl">RIVA</span>
+                <span className="text-sm font-normal text-gray-500 tracking-widest mt-1 print:mt-0 print:text-[10px]">INCORPORADORA</span>
               </div>
             </div>
           )}
-          <h2 className="text-2xl mt-4 text-gray-800 print:mt-2">Plano de pagamento <span className="font-bold">Tabela Direta</span></h2>
+          <h2 className="text-2xl mt-8 text-gray-800 print:mt-6 print:text-lg">Plano de pagamento <span className="font-bold">Tabela Direta</span></h2>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 space-y-6 print:space-y-4">
+      <main className="max-w-6xl mx-auto px-4 space-y-6 print:max-w-none print:px-2 print:space-y-1">
         
         {/* Validation Warnings */}
         {(!isPercentExactly100 || !isValorValid) && (
@@ -496,86 +518,93 @@ export default function App() {
           </div>
         )}
 
-        {/* General Info */}
-        <div className="bg-white border-2 border-gray-800 overflow-hidden shadow-sm">
-          <div className="grid grid-cols-[1fr_2fr] border-b border-gray-300">
-            <div className="bg-gray-100 p-1.5 text-right font-semibold text-sm border-r border-gray-300 flex items-center justify-end">Empreendimento:</div>
-            <div className="p-1.5 flex items-center gap-2">
-              <select 
-                value={empreendimento} 
-                onChange={e => {
-                  setEmpreendimento(e.target.value);
-                  const emp = empreendimentosList.find(x => x.nome === e.target.value);
-                  if (emp) setDataEntrega(emp.dataEntrega);
-                }} 
-                className="w-full outline-none bg-transparent"
-              >
-                {empreendimentosList.map(emp => (
-                  <option key={emp.id} value={emp.nome}>{emp.nome}</option>
-                ))}
-                {!empreendimentosList.find(x => x.nome === empreendimento) && (
-                  <option value={empreendimento}>{empreendimento}</option>
-                )}
-              </select>
-              <button 
-                onClick={() => setShowEmpManager(true)} 
-                className="print:hidden text-gray-500 hover:text-blue-600 p-1 rounded hover:bg-gray-100"
-                title="Gerenciar Empreendimentos"
-              >
-                <Settings className="w-4 h-4" />
-              </button>
+        {/* Info and Values side by side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-[1.7fr_1fr] gap-6 print:gap-1 items-start">
+          {/* General Info */}
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm h-full">
+            <div className="grid grid-cols-[auto_1fr] border-b border-slate-100">
+              <div className="bg-white p-2 print:p-0.5 text-center font-bold text-xs tracking-wider text-slate-500 border-r border-slate-100 col-span-2 uppercase">INFORMAÇÕES DO IMÓVEL</div>
+            </div>
+            <div className="grid grid-cols-[auto_1fr] border-b border-slate-100">
+              <div className="bg-white p-2 print:p-0.5 text-right font-semibold text-sm print:text-[10px] border-r border-slate-100 flex items-center justify-end whitespace-nowrap text-slate-600">Empreendimento:</div>
+              <div className="p-2 print:p-0.5 flex items-center gap-2">
+                <input 
+                  type="text"
+                  list="empreendimentos-list"
+                  value={empreendimento} 
+                  onChange={e => {
+                    setEmpreendimento(e.target.value);
+                    const emp = empreendimentosList.find(x => x.nome === e.target.value);
+                    if (emp && emp.dataEntrega) setDataEntrega(emp.dataEntrega);
+                  }} 
+                  className="w-full outline-none bg-transparent print:text-[10px] font-medium"
+                  placeholder="Digite ou selecione..."
+                />
+                <datalist id="empreendimentos-list">
+                  {empreendimentosList.map(emp => (
+                    <option key={emp.id} value={emp.nome} />
+                  ))}
+                </datalist>
+                <button 
+                  onClick={() => setShowEmpManager(true)} 
+                  className="print:hidden text-slate-400 hover:text-blue-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+                  title="Gerenciar Empreendimentos"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-[auto_1fr] border-b border-slate-100">
+              <div className="bg-white p-2 print:p-0.5 text-right font-semibold text-sm print:text-[10px] border-r border-slate-100 flex items-center justify-end whitespace-nowrap text-slate-600">Unidade:</div>
+              <div className="p-2 print:p-0.5"><input type="text" value={unidade} onChange={e => setUnidade(e.target.value)} className="w-full outline-none bg-transparent print:text-[10px] font-medium" /></div>
+            </div>
+            <div className="grid grid-cols-[auto_1fr] border-b border-slate-100">
+              <div className="bg-white p-2 print:p-0.5 text-right font-semibold text-sm print:text-[10px] border-r border-slate-100 flex items-center justify-end whitespace-nowrap text-slate-600">Data de entrega:</div>
+              <div className="p-2 print:p-0.5 w-48 print:w-auto"><input type="date" value={dataEntrega} onChange={e => setDataEntrega(e.target.value)} className="w-full outline-none bg-transparent print:text-[10px] font-medium" /></div>
+            </div>
+            <div className="grid grid-cols-[auto_1fr]">
+              <div className="bg-white p-2 print:p-0.5 text-right font-semibold text-sm print:text-[10px] border-r border-slate-100 flex items-center justify-end whitespace-nowrap text-slate-600">Meses até entrega:</div>
+              <div className="p-2 print:p-0.5 w-24 print:w-auto"><input type="number" value={mesesAteEntrega} onChange={e => setMesesAteEntrega(parseInt(e.target.value) || 0)} className="w-full outline-none bg-transparent print:text-[10px] font-medium" /></div>
             </div>
           </div>
-          <div className="grid grid-cols-[1fr_2fr] border-b border-gray-300">
-            <div className="bg-gray-100 p-1.5 text-right font-semibold text-sm border-r border-gray-300 flex items-center justify-end">Unidade:</div>
-            <div className="p-1.5"><input type="text" value={unidade} onChange={e => setUnidade(e.target.value)} className="w-full outline-none bg-transparent" /></div>
-          </div>
-          <div className="grid grid-cols-[1fr_2fr] border-b border-gray-300">
-            <div className="bg-gray-100 p-1.5 text-right font-semibold text-sm border-r border-gray-300 flex items-center justify-end">Data de entrega:</div>
-            <div className="p-1.5 w-48"><input type="date" value={dataEntrega} onChange={e => setDataEntrega(e.target.value)} className="w-full outline-none bg-transparent" /></div>
-          </div>
-          <div className="grid grid-cols-[1fr_2fr]">
-            <div className="bg-gray-100 p-1.5 text-right font-semibold text-sm border-r border-gray-300 flex items-center justify-end">Quant meses até a entrega:</div>
-            <div className="p-1.5 w-24"><input type="number" value={mesesAteEntrega} onChange={e => setMesesAteEntrega(parseInt(e.target.value) || 0)} className="w-full outline-none bg-transparent" /></div>
-          </div>
-        </div>
 
-        {/* Values */}
-        <div className="bg-white border-2 border-gray-800 overflow-hidden shadow-sm w-full max-w-md">
-          <div className="grid grid-cols-[1fr_1fr] border-b border-gray-300">
-            <div className="bg-gray-100 p-1.5 text-center font-semibold text-sm border-r border-gray-300">DESCRIÇÃO</div>
-            <div className="bg-gray-100 p-1.5 text-center font-semibold text-sm">VALOR</div>
-          </div>
-          <div className="grid grid-cols-[1fr_1fr] border-b border-gray-300">
-            <div className="p-1.5 text-right font-semibold text-sm border-r border-gray-300 flex items-center justify-end">Valor da Unidade</div>
-            <div className="p-1.5"><CurrencyInput value={valorUnidade} onChange={setValorUnidade} /></div>
-          </div>
-          <div className="grid grid-cols-[1fr_1fr] border-b border-gray-300">
-            <div className="p-1.5 text-right font-semibold text-sm border-r border-gray-300 flex items-center justify-end">Descontos</div>
-            <div className="p-1.5"><CurrencyInput value={descontos} onChange={setDescontos} /></div>
-          </div>
-          <div className="grid grid-cols-[1fr_1fr]">
-            <div className="p-1.5 text-right font-semibold text-sm border-r border-gray-300 flex items-center justify-end">Valor após descontos</div>
-            <div className="p-1.5"><CurrencyInput value={valorAposDescontos} onChange={() => {}} readOnly className="font-bold" /></div>
+          {/* Values */}
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm h-full">
+            <div className="grid grid-cols-[1fr_1fr] border-b border-slate-100">
+              <div className="bg-white p-2 print:p-0.5 text-center font-bold text-xs tracking-wider text-slate-500 border-r border-slate-100 uppercase">DESCRIÇÃO</div>
+              <div className="bg-white p-2 print:p-0.5 text-center font-bold text-xs tracking-wider text-slate-500 uppercase">VALOR</div>
+            </div>
+            <div className="grid grid-cols-[1fr_1fr] border-b border-slate-100">
+              <div className="p-2 print:p-0.5 text-right font-semibold text-sm print:text-[10px] border-r border-slate-100 flex items-center justify-end whitespace-nowrap text-slate-600">Valor da Unidade</div>
+              <div className="p-2 print:p-0.5"><CurrencyInput value={valorUnidade} onChange={setValorUnidade} className="print:text-[10px] print:py-0 font-medium" /></div>
+            </div>
+            <div className="grid grid-cols-[1fr_1fr] border-b border-slate-100">
+              <div className="p-2 print:p-0.5 text-right font-semibold text-sm print:text-[10px] border-r border-slate-100 flex items-center justify-end whitespace-nowrap text-slate-600">Descontos</div>
+              <div className="p-2 print:p-0.5"><CurrencyInput value={descontos} onChange={setDescontos} className="print:text-[10px] print:py-0 font-medium text-red-500" /></div>
+            </div>
+            <div className="grid grid-cols-[1fr_1fr]">
+              <div className="p-2 print:p-0.5 text-right font-bold text-sm print:text-[10px] border-r border-slate-100 flex items-center justify-end whitespace-nowrap text-slate-800">Valor após descontos</div>
+              <div className="p-2 print:p-0.5"><CurrencyInput value={valorAposDescontos} onChange={() => {}} readOnly className="font-bold print:text-[10px] print:py-0 text-blue-700" /></div>
+            </div>
           </div>
         </div>
 
         {/* Main Grid for Payment Plan */}
-        <div className="grid grid-cols-1 lg:grid-cols-[12fr_7fr_5fr] gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[12fr_7fr_5fr] print:grid-cols-[1.7fr_1fr] gap-6 print:gap-2 items-start">
           
-          {/* Left Column: ATO, PRE, POS */}
-          <div className="space-y-6">
+          {/* Column 1: ATO, PRE, POS */}
+          <div className="contents lg:block lg:space-y-6 print:block print:space-y-1">
             
             {/* ATO Section */}
-            <div className="border-2 border-gray-800 shadow-sm bg-white">
+            <div className="border border-slate-200 rounded-xl shadow-md bg-white overflow-hidden order-1">
               {/* Header */}
-              <div className="grid grid-cols-[1fr_1fr_1fr_1fr] border-b border-gray-800">
-                <div className="bg-black text-white p-2 font-bold text-center flex items-center justify-center text-lg">ATO</div>
-                <div className="bg-blue-700 text-white p-2 font-semibold text-center flex items-center justify-center border-r border-white/20">Porcentagem ato:</div>
-                <div className="p-2 border-r border-gray-300 bg-gray-50 flex items-center">
-                  <PercentInput value={atoPercent} onChange={(val: number) => handlePercentChange('ato', val)} className="font-bold text-lg" />
+              <div className="grid grid-cols-2 sm:grid-cols-[0.8fr_1.2fr_1fr_1.6fr] print:grid-cols-[0.8fr_1.2fr_1fr_1.6fr] border-b border-slate-200">
+                <div className="bg-[#001f3f] text-white p-2 font-bold text-center flex items-center justify-center text-base sm:text-lg print:text-sm border-b sm:border-b-0 print:border-b-0 sm:border-r border-white/10">ATO</div>
+                <div className="bg-white text-slate-700 p-2 font-semibold text-center flex items-center justify-center border-b sm:border-b-0 print:border-b-0 border-r border-slate-200 text-xs sm:text-sm print:text-[10px]">Porcentagem ato:</div>
+                <div className="p-2 border-r border-slate-100 bg-white flex items-center">
+                  <PercentInput value={atoPercent} onChange={(val: number) => handlePercentChange('ato', val)} className="font-bold text-base sm:text-lg text-blue-900" />
                 </div>
-                <div className="p-2 bg-gray-50 flex items-center">
+                <div className="p-2 bg-white flex items-center">
                   <CurrencyInput 
                     value={valorAtoTotal} 
                     onChange={(v: number) => {
@@ -584,181 +613,184 @@ export default function App() {
                         handlePercentChange('ato', newPercent);
                       }
                     }} 
-                    className="font-bold text-lg"
+                    className="font-bold text-base sm:text-lg text-blue-900"
                   />
                 </div>
               </div>
               
               {/* Sinais Table */}
-              <div className="grid grid-cols-[1fr_1fr_1fr] border-b border-gray-300 bg-gray-100 text-sm font-semibold text-center">
-                <div className="p-1.5 border-r border-gray-300">Sinal Ato</div>
-                <div className="p-1.5 border-r border-gray-300">Valor</div>
-                <div className="p-1.5">Data</div>
+              <div className="grid grid-cols-[1fr_1fr_1fr] border-b border-slate-100 bg-white text-xs font-bold tracking-wider text-slate-500 uppercase text-center">
+                <div className="p-2 print:p-0.5 border-r border-slate-100">Sinal Ato</div>
+                <div className="p-2 print:p-0.5 border-r border-slate-100">Valor</div>
+                <div className="p-2 print:p-0.5">Data</div>
               </div>
               
               {sinais.map((sinal) => (
-                <div key={sinal.id} className="grid grid-cols-[1fr_1fr_1fr] border-b border-gray-300 text-sm">
-                  <div className="p-1.5 border-r border-gray-300 font-semibold flex items-center justify-center">{sinal.label}</div>
-                  <div className="p-1.5 border-r border-gray-300">
-                    <CurrencyInput value={sinal.valor} onChange={(v: number) => updateSinal(sinal.id, 'valor', v)} />
+                <div key={sinal.id} className="grid grid-cols-[1fr_1fr_1fr] border-b border-slate-100 text-sm print:text-xs hover:bg-slate-50 transition-colors">
+                  <div className="p-2 print:p-0.5 border-r border-slate-100 font-semibold flex items-center justify-center text-slate-700">{sinal.label}</div>
+                  <div className="p-2 print:p-0.5 border-r border-slate-100">
+                    <CurrencyInput value={sinal.valor} onChange={(v: number) => updateSinal(sinal.id, 'valor', v)} className="print:text-xs print:py-0 font-medium" />
                   </div>
-                  <div className="p-1.5">
-                    <input type="date" value={sinal.data} onChange={(e) => updateSinal(sinal.id, 'data', e.target.value)} className="w-full outline-none text-center" />
+                  <div className="p-2 print:p-0.5">
+                    <input type="date" value={sinal.data} onChange={(e) => updateSinal(sinal.id, 'data', e.target.value)} className="w-full outline-none text-center print:text-xs bg-transparent" />
                   </div>
                 </div>
               ))}
               
               {/* Total Sinais */}
-              <div className="grid grid-cols-[1fr_1fr_1fr] border-b border-gray-300">
-                <div className="p-1.5 border-r border-gray-300 font-bold text-right">Total</div>
-                <div className={`p-1.5 border-r border-gray-300 font-bold text-right ${Math.abs(totalSinais - valorAtoTotal) > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
+              <div className="grid grid-cols-[1fr_1fr_1fr] border-b border-slate-100 bg-white">
+                <div className="p-2 print:p-0.5 border-r border-slate-100 font-bold text-right text-sm print:text-xs text-slate-600">Total</div>
+                <div className={`p-2 print:p-0.5 border-r border-slate-100 font-bold text-right text-sm print:text-xs ${Math.abs(totalSinais - valorAtoTotal) > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
                   {formatCurrency(totalSinais)}
                 </div>
-                <div className="p-1.5 bg-gray-50"></div>
+                <div className="p-2 print:p-0.5"></div>
               </div>
               
               {/* Qtd Sinais */}
-              <div className="grid grid-cols-[1fr_2fr] text-sm">
-                <div className="p-1.5 border-r border-gray-300 font-semibold text-right">Quantidade de sinais utilizado:</div>
-                <div className="p-1.5 text-center">{qtdSinaisUtilizados}</div>
+              <div className="grid grid-cols-[1fr_2fr] text-sm print:text-xs bg-white">
+                <div className="p-2 print:p-0.5 border-r border-slate-100 font-semibold text-right text-slate-600">Quantidade de sinais utilizado:</div>
+                <div className="p-2 print:p-0.5 text-center font-bold text-slate-800">{qtdSinaisUtilizados}</div>
               </div>
             </div>
 
             {/* PRE Section */}
-            <div className="border-2 border-gray-800 shadow-sm bg-white">
-              <div className="bg-black text-white p-2 font-bold text-center border-b border-gray-800 text-lg">
+            <div className="border border-slate-200 rounded-xl shadow-md bg-white overflow-hidden order-3">
+              <div className="bg-[#001f3f] text-white p-2 font-bold text-center border-b border-slate-200 text-xs sm:text-sm print:text-[10px]">
                 PRÉ - CORRIGIDA POR <span className="text-yellow-400">INCC</span>
               </div>
-              <div className="grid grid-cols-[1fr_1fr_1.2fr_1.3fr] border-b border-gray-800 text-sm">
-                <div className="bg-blue-700 text-white p-2 font-semibold flex items-center justify-center border-r border-white/20 text-center leading-tight">Porcentagem Pré</div>
-                <div className="p-2 border-r border-gray-300 bg-gray-50 flex items-center">
-                  <PercentInput value={prePercent} onChange={(val: number) => handlePercentChange('pre', val)} className="font-bold text-lg" />
+              <div className="grid grid-cols-2 sm:grid-cols-4 print:grid-cols-4 border-b border-slate-200 text-sm">
+                <div className="bg-white text-slate-700 p-2 font-semibold flex items-center justify-center border-b sm:border-b-0 print:border-b-0 border-r border-slate-200 text-center leading-tight text-[9px] sm:text-[10px] print:text-[8px]">Porcentagem Pré</div>
+                <div className="p-2 border-b sm:border-b-0 border-r border-slate-100 bg-white flex items-center">
+                  <PercentInput value={prePercent} onChange={(val: number) => handlePercentChange('pre', val)} className="font-bold text-xs sm:text-sm text-blue-900" />
                 </div>
-                <div className="p-2 border-r border-gray-300 font-bold text-lg flex items-center justify-center bg-gray-50">
+                <div className="p-2 border-r border-slate-100 font-bold text-xs sm:text-sm flex items-center justify-center bg-white text-blue-900">
                   {formatCurrency(valorPreTotal)}
                 </div>
-                <div className="grid grid-cols-[auto_1fr] bg-blue-700">
-                   <div className="text-white p-1.5 px-2 font-semibold flex items-center justify-center border-r border-white/20 text-xs text-center leading-tight">Qtd.<br/>parcelas:</div>
-                   <div className="p-1.5 flex items-center bg-gray-50">
-                     <input type="number" value={preParcelas} onChange={e => setPreParcelas(parseInt(e.target.value) || 0)} className="w-full text-center outline-none bg-transparent font-bold text-lg" />
+                <div className="grid grid-cols-[auto_1fr] bg-white">
+                   <div className="text-slate-700 p-1 px-2 font-semibold flex items-center justify-center border-r border-slate-200 text-[8px] sm:text-[9px] text-center leading-tight">Qtd.<br/>parc:</div>
+                   <div className="p-1 flex items-center bg-white">
+                     <input type="number" value={preParcelas} onChange={e => setPreParcelas(parseInt(e.target.value) || 0)} className="w-full text-center outline-none bg-transparent font-bold text-xs sm:text-sm text-blue-900" />
                    </div>
                 </div>
               </div>
-              <div className="grid grid-cols-[1fr_1fr_1fr] border-b border-gray-300 text-sm font-semibold text-center bg-gray-100">
-                <div className="p-1.5 border-r border-gray-300"></div>
-                <div className="p-1.5 border-r border-gray-300">Valor</div>
-                <div className="p-1.5">Data de Início</div>
+              <div className="grid grid-cols-[1fr_1fr_1fr] border-b border-slate-100 bg-white text-[9px] font-bold tracking-wider text-slate-500 uppercase text-center">
+                <div className="p-1 print:p-0.5 border-r border-slate-100"></div>
+                <div className="p-1 print:p-0.5 border-r border-slate-100">Valor</div>
+                <div className="p-1 print:p-0.5">Data de Início</div>
               </div>
-              <div className="grid grid-cols-[1fr_1fr_1fr] text-sm">
-                <div className="bg-blue-700 text-white p-2 font-semibold flex items-center justify-center border-r border-gray-300">Parcelas até a entrega</div>
-                <div className="p-2 border-r border-gray-300 flex items-center justify-center font-medium">
+              <div className="grid grid-cols-[1fr_1fr_1fr] text-[10px] print:text-[9px]">
+                <div className="bg-white text-slate-700 p-2 print:p-0.5 font-semibold flex items-center justify-center border-r border-slate-200 text-center leading-tight">Parcelas até a entrega</div>
+                <div className="p-2 print:p-0.5 border-r border-slate-100 flex items-center justify-center font-bold text-blue-900">
                   {formatCurrency(valorParcelaPre)}
                 </div>
-                <div className="p-2 flex items-center">
-                  <input type="date" value={preDataInicio} onChange={e => setPreDataInicio(e.target.value)} className="w-full outline-none text-center" />
+                <div className="p-2 print:p-0.5 flex items-center bg-white">
+                  <input type="date" value={preDataInicio} onChange={e => setPreDataInicio(e.target.value)} className="w-full outline-none text-center print:text-[9px] bg-transparent font-medium" />
                 </div>
               </div>
             </div>
 
-            <PreSimulation 
-              parcelas={preParcelas} 
-              valorBase={valorParcelaPre} 
-              dataInicio={preDataInicio} 
-            />
+            <div className="order-4">
+              <PreSimulation 
+                parcelas={preParcelas} 
+                valorBase={valorParcelaPre} 
+                dataInicio={preDataInicio} 
+              />
+            </div>
 
             {/* POS Section */}
-            <div className="border-2 border-gray-800 shadow-sm bg-white">
-              <div className="bg-black text-white p-2 text-center border-b border-gray-800 flex flex-col items-center justify-center">
-                <div className="font-bold text-lg">
+            <div className="border border-slate-200 rounded-xl shadow-md bg-white overflow-hidden order-7">
+              <div className="bg-[#001f3f] text-white p-2 text-center border-b border-slate-200 flex flex-col items-center justify-center">
+                <div className="font-bold text-xs sm:text-sm print:text-[10px]">
                   PÓS - CORRIGIDA POR <span className="text-yellow-400">1% + IPCA</span>
                 </div>
-                <div className="text-xs text-gray-300 font-medium mt-0.5">
+                <div className="text-[8px] sm:text-[9px] text-slate-300 font-medium mt-0.5">
                   (O máximo permitido para o Pós-Chaves é de 60%)
                 </div>
               </div>
-              <div className="grid grid-cols-[1fr_1fr_1.2fr_1.3fr] border-b border-gray-800 text-sm">
-                <div className="bg-blue-700 text-white p-2 font-semibold flex items-center justify-center border-r border-white/20 text-center leading-tight">Porcentagem PÓS</div>
-                <div className="p-2 border-r border-gray-300 bg-gray-50 flex items-center">
-                  <PercentInput value={posPercent} onChange={(val: number) => handlePercentChange('pos', val)} className="font-bold text-lg" />
+              <div className="grid grid-cols-2 sm:grid-cols-4 print:grid-cols-4 border-b border-slate-200 text-sm">
+                <div className="bg-white text-slate-700 p-2 font-semibold flex items-center justify-center border-b sm:border-b-0 print:border-b-0 border-r border-slate-200 text-center leading-tight text-[9px] sm:text-[10px] print:text-[8px]">Porcentagem PÓS</div>
+                <div className="p-2 border-b sm:border-b-0 border-r border-slate-100 bg-white flex items-center">
+                  <PercentInput value={posPercent} onChange={(val: number) => handlePercentChange('pos', val)} className="font-bold text-xs sm:text-sm text-blue-900" />
                 </div>
-                <div className="p-2 border-r border-gray-300 font-bold text-lg flex items-center justify-center bg-gray-50">
+                <div className="p-2 border-r border-slate-100 font-bold text-xs sm:text-sm flex items-center justify-center bg-white text-blue-900">
                   {formatCurrency(valorPosTotal)}
                 </div>
-                <div className="grid grid-cols-[auto_1fr] bg-blue-700">
-                   <div className="text-white p-1.5 px-2 font-semibold flex items-center justify-center border-r border-white/20 text-xs text-center leading-tight">Qtd.<br/>parcelas:</div>
-                   <div className="p-1.5 flex items-center bg-gray-50">
-                     <input type="number" value={posParcelas} onChange={e => setPosParcelas(parseInt(e.target.value) || 0)} className="w-full text-center outline-none bg-transparent font-bold text-lg" />
+                <div className="grid grid-cols-[auto_1fr] bg-white">
+                   <div className="text-slate-700 p-1 px-3 font-semibold flex items-center justify-center border-r border-slate-200 text-[8px] sm:text-[9px] text-center leading-tight">Qtd.<br/>parc:</div>
+                   <div className="p-1 flex items-center bg-white">
+                     <input type="number" value={posParcelas} onChange={e => setPosParcelas(parseInt(e.target.value) || 0)} className="w-full text-center outline-none bg-transparent font-bold text-xs sm:text-sm text-blue-900" />
                    </div>
                 </div>
               </div>
-              <div className="grid grid-cols-[1fr_1fr_1fr] border-b border-gray-300 text-sm font-semibold text-center bg-gray-100">
-                <div className="p-1.5 border-r border-gray-300"></div>
-                <div className="p-1.5 border-r border-gray-300">Valor</div>
-                <div className="p-1.5">Data de Início</div>
+              <div className="grid grid-cols-[1fr_1fr_1fr] border-b border-slate-100 bg-white text-[9px] font-bold tracking-wider text-slate-500 uppercase text-center">
+                <div className="p-1 print:p-0.5 border-r border-slate-100"></div>
+                <div className="p-1 print:p-0.5 border-r border-slate-100">Valor</div>
+                <div className="p-1 print:p-0.5">Data de Início</div>
               </div>
-              <div className="grid grid-cols-[1fr_1fr_1fr] text-sm">
-                <div className="bg-blue-700 text-white p-2 font-semibold flex items-center justify-center border-r border-gray-300">Parcelas após a entrega</div>
-                <div className="p-2 border-r border-gray-300 flex items-center justify-center font-medium">
+              <div className="grid grid-cols-[1fr_1fr_1fr] text-[10px] print:text-[9px]">
+                <div className="bg-white text-slate-700 p-2 print:p-0.5 font-semibold flex items-center justify-center border-r border-slate-200 text-center leading-tight">Parcelas após a entrega</div>
+                <div className="p-2 print:p-0.5 border-r border-slate-100 flex items-center justify-center font-bold text-blue-900">
                   {formatCurrency(valorParcelaPos)}
                 </div>
-                <div className="p-2 flex items-center">
-                  <input type="date" value={posDataInicio} onChange={e => setPosDataInicio(e.target.value)} className="w-full outline-none text-center" />
+                <div className="p-2 print:p-0.5 flex items-center bg-white">
+                  <input type="date" value={posDataInicio} onChange={e => setPosDataInicio(e.target.value)} className="w-full outline-none text-center print:text-[9px] bg-transparent font-medium" />
                 </div>
               </div>
             </div>
 
-            <PosSimulation 
-              parcelas={posParcelas} 
-              valorBase={valorParcelaPos} 
-              dataInicio={posDataInicio} 
-            />
-
+            <div className="order-8">
+              <PosSimulation 
+                parcelas={posParcelas} 
+                valorBase={valorParcelaPos} 
+                dataInicio={posDataInicio} 
+              />
+            </div>
           </div>
 
-          {/* Right Column: Baloes */}
-          <div className="space-y-6">
-            <div className="border-2 border-gray-800 shadow-sm bg-white">
-              <div className="grid grid-cols-[1fr_1fr] border-b border-gray-300 text-sm">
-                <div className="p-2 border-r border-gray-300 font-semibold text-center bg-gray-100">Porcentagem</div>
-                <div className="p-2 flex items-center">
-                  <PercentInput value={baloesPercent} onChange={(val: number) => handlePercentChange('baloes', val)} className="text-center font-bold" />
+          {/* Column 2: Baloes */}
+          <div className="contents lg:block lg:space-y-6 print:block">
+            <div className="border border-slate-200 rounded-xl shadow-md bg-white overflow-hidden order-5">
+              <div className="grid grid-cols-[1fr_1fr] border-b border-slate-200 text-sm">
+                <div className="p-3 print:p-0.5 border-r border-slate-100 font-bold text-center bg-white text-slate-500 uppercase tracking-wider text-xs print:text-[10px]">Porcentagem</div>
+                <div className="p-3 print:p-0.5 flex items-center bg-white">
+                  <PercentInput value={baloesPercent} onChange={(val: number) => handlePercentChange('baloes', val)} className="text-center font-bold text-blue-900 print:text-[10px]" />
                 </div>
               </div>
-              <div className="grid grid-cols-[1fr_1fr] border-b border-gray-800 text-sm">
-                <div className="p-2 border-r border-gray-300 font-semibold text-center bg-gray-100">Valor</div>
-                <div className="p-2 text-center font-bold bg-gray-50">
+              <div className="grid grid-cols-[1fr_1fr] border-b border-slate-200 text-sm">
+                <div className="p-3 print:p-0.5 border-r border-slate-100 font-bold text-center bg-white text-slate-500 uppercase tracking-wider text-xs print:text-[10px]">Valor</div>
+                <div className="p-3 print:p-0.5 text-center font-bold bg-white text-blue-900 print:text-[10px]">
                   {formatCurrency(valorBaloesTotal)}
                 </div>
               </div>
-              <div className="bg-black text-white p-2 font-bold text-center border-b border-gray-800 text-lg">
+              <div className="bg-[#001f3f] text-white p-3 font-bold text-center border-b border-slate-200 text-base sm:text-lg print:text-sm">
                 Balões
               </div>
-              <div className="grid grid-cols-[1fr_1fr] border-b border-gray-300 text-sm font-semibold text-center bg-gray-100">
-                <div className="p-1.5 border-r border-gray-300">Valor</div>
-                <div className="p-1.5">Data</div>
+              <div className="grid grid-cols-[1fr_1fr] border-b border-slate-100 bg-white text-xs font-bold tracking-wider text-slate-500 uppercase text-center">
+                <div className="p-2 print:p-0.5 border-r border-slate-100">Valor</div>
+                <div className="p-2 print:p-0.5">Data</div>
               </div>
               
               {baloes.map((balao) => (
-                <div key={balao.id} className="grid grid-cols-[1fr_1fr] border-b border-gray-300 text-sm">
-                  <div className="p-1.5 border-r border-gray-300">
-                    <CurrencyInput value={balao.valor} onChange={(v: number) => updateBalao(balao.id, 'valor', v)} />
+                <div key={balao.id} className="grid grid-cols-[1fr_1fr] border-b border-slate-100 text-sm print:text-xs hover:bg-slate-50 transition-colors">
+                  <div className="p-2 print:p-0.5 border-r border-slate-100">
+                    <CurrencyInput value={balao.valor} onChange={(v: number) => updateBalao(balao.id, 'valor', v)} className="print:text-xs print:py-0 font-medium" />
                   </div>
-                  <div className="p-1.5">
-                    <input type="date" value={balao.data} onChange={(e) => updateBalao(balao.id, 'data', e.target.value)} className="w-full outline-none text-center" />
+                  <div className="p-2 print:p-0.5">
+                    <input type="date" value={balao.data} onChange={(e) => updateBalao(balao.id, 'data', e.target.value)} className="w-full outline-none text-center print:text-xs bg-transparent font-medium" />
                   </div>
                 </div>
               ))}
               
-              <div className="grid grid-cols-[1fr_1fr] text-sm">
-                <div className="p-2 border-r border-gray-300 font-bold text-right bg-gray-100">Total</div>
-                <div className={`p-2 font-bold text-center bg-gray-50 ${Math.abs(totalBaloes - valorBaloesTotal) > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
+              <div className="grid grid-cols-[1fr_1fr] text-sm print:text-xs bg-white">
+                <div className="p-3 print:p-0.5 border-r border-slate-100 font-bold text-right text-slate-600">Total</div>
+                <div className={`p-3 print:p-0.5 font-bold text-center ${Math.abs(totalBaloes - valorBaloesTotal) > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
                   {formatCurrency(totalBaloes)}
                 </div>
               </div>
             </div>
             
             {/* Print Button */}
-            <div className="flex justify-end print:hidden">
+            <div className="flex justify-end print:hidden order-9">
               <button 
                 onClick={() => {
                   try {
@@ -771,7 +803,7 @@ export default function App() {
                     setShowPrintModal(true);
                   }
                 }}
-                className="flex items-center gap-2 bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition-colors shadow-md hover:shadow-lg w-full justify-center"
+                className="flex items-center gap-2 bg-blue-700 text-white px-6 py-4 rounded-xl font-bold hover:bg-blue-800 transition-all shadow-lg hover:shadow-xl w-full justify-center transform hover:-translate-y-0.5"
               >
                 <Printer className="w-5 h-5" />
                 Imprimir Plano
@@ -779,23 +811,23 @@ export default function App() {
             </div>
           </div>
 
-          {/* Helper Column: Simuladores */}
-          <div className="space-y-6 print:hidden">
+          {/* Column 3: Simuladores */}
+          <div className="contents lg:block lg:space-y-6 print:hidden">
             
             {/* Simulador de Ato */}
-            <div className="bg-white border-2 border-gray-800 shadow-sm rounded-lg overflow-hidden">
-              <div className="bg-black text-white p-3 font-bold text-center border-b border-gray-800">
+            <div className="bg-white border border-slate-200 shadow-md rounded-xl overflow-hidden order-2">
+              <div className="bg-[#001f3f] text-white p-3 font-bold text-center border-b border-slate-200">
                 Simulador de Ato
               </div>
               <div className="p-4 space-y-4">
-                <p className="text-sm text-gray-600 text-center">
-                  Veja como ficaria o valor total de <strong>{formatCurrency(valorAtoTotal)}</strong> dividido em parcelas iguais:
+                <p className="text-sm text-slate-500 text-center">
+                  Veja como ficaria o valor total de <strong className="text-slate-900">{formatCurrency(valorAtoTotal)}</strong> dividido em parcelas iguais:
                 </p>
                 <div className="space-y-2">
                   {[2, 3, 4].map(num => (
-                    <div key={num} className="flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-200">
-                      <span className="font-semibold text-gray-700">{num}x de</span>
-                      <span className="font-bold text-black">{formatCurrency(valorAtoTotal / num)}</span>
+                    <div key={num} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors">
+                      <span className="font-bold text-slate-500 text-xs uppercase tracking-wider">{num}x de</span>
+                      <span className="font-bold text-slate-900">{formatCurrency(valorAtoTotal / num)}</span>
                     </div>
                   ))}
                 </div>
@@ -803,25 +835,25 @@ export default function App() {
             </div>
 
             {/* Simulador de Balões */}
-            <div className="bg-white border-2 border-gray-800 shadow-sm rounded-lg overflow-hidden">
-              <div className="bg-blue-700 text-white p-3 font-bold text-center border-b border-gray-800">
+            <div className="bg-white border border-slate-200 shadow-md rounded-xl overflow-hidden order-6">
+              <div className="bg-blue-600 text-white p-3 font-bold text-center border-b border-slate-200">
                 Simulador de Balões
               </div>
               <div className="p-4 space-y-4">
-                <p className="text-sm text-gray-600 text-center">
-                  Veja como ficaria o valor total de <strong>{formatCurrency(valorBaloesTotal)}</strong> dividido em parcelas iguais:
+                <p className="text-sm text-slate-500 text-center">
+                  Veja como ficaria o valor total de <strong className="text-slate-900">{formatCurrency(valorBaloesTotal)}</strong> dividido em parcelas iguais:
                 </p>
                 <div className="space-y-2">
                   {[2, 3, 4, 5, 6].map(num => (
-                    <div key={num} className="flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-200">
-                      <span className="font-semibold text-gray-700">{num}x de</span>
-                      <span className="font-bold text-blue-800">{formatCurrency(valorBaloesTotal / num)}</span>
+                    <div key={num} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors">
+                      <span className="font-bold text-slate-500 text-xs uppercase tracking-wider">{num}x de</span>
+                      <span className="font-bold text-blue-700">{formatCurrency(valorBaloesTotal / num)}</span>
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md flex items-start gap-2 text-yellow-800 text-xs leading-relaxed">
-                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <p><strong>Aviso:</strong> Os balões devem ser até no máximo 6 meses da entrega.</p>
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-xl flex items-start gap-3 text-amber-800 text-xs leading-relaxed shadow-sm">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
+                  <p><strong className="text-amber-900">Aviso:</strong> Os balões devem ser até no máximo 6 meses da entrega.</p>
                 </div>
               </div>
             </div>
@@ -831,11 +863,11 @@ export default function App() {
       </main>
 
       {/* Footer AdSense */}
-      <footer className="fixed bottom-0 w-full bg-white border-t border-gray-200 p-2 text-center z-40 print:hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-        <div className="max-w-3xl mx-auto bg-gray-100 h-[90px] flex items-center justify-center text-gray-400 text-sm border border-dashed border-gray-300 relative overflow-hidden">
-          <span className="z-10 bg-white/80 px-2 py-1 rounded">Publicidade Google AdSense (728x90)</span>
+      <footer className="fixed bottom-0 w-full bg-white border-t border-slate-200 p-2 text-center z-40 print:hidden shadow-[0_-4px_10px_-1px_rgba(0,0,0,0.05)]">
+        <div className="max-w-3xl mx-auto bg-slate-50 h-[90px] flex items-center justify-center text-slate-400 text-sm border border-dashed border-slate-300 rounded-xl relative overflow-hidden">
+          <span className="z-10 bg-white/90 px-3 py-1.5 rounded-full shadow-sm font-medium border border-slate-100">Publicidade Google AdSense (728x90)</span>
           {/* Placeholder for actual AdSense script */}
-          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/diagonal-stripes.png')]"></div>
+          <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/diagonal-stripes.png')]"></div>
         </div>
       </footer>
 

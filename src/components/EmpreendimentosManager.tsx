@@ -10,10 +10,10 @@ export interface EmpreendimentoData {
 export const defaultEmpreendimentos: EmpreendimentoData[] = [
   { id: '1', nome: 'Conquista Maraponga', dataEntrega: '2027-01-31' },
   { id: '2', nome: 'Conquista Messejana', dataEntrega: '2028-05-31' },
-  { id: '3', nome: 'Estilo Fatima', dataEntrega: '2027-03-30' },
+  { id: '3', nome: 'Estilo Fátima', dataEntrega: '2027-03-30' },
   { id: '4', nome: 'Estilo Passaré', dataEntrega: '2026-10-31' },
   { id: '5', nome: 'Estilo Praia', dataEntrega: '2026-10-31' },
-  { id: '6', nome: 'Lumina Fatima', dataEntrega: '2028-06-30' },
+  { id: '6', nome: 'Lumina Fátima', dataEntrega: '2028-06-30' },
   { id: '7', nome: 'MyPlace Benfica', dataEntrega: '' },
   { id: '8', nome: 'Nature Arbo', dataEntrega: '2028-05-31' },
   { id: '9', nome: 'Nature Eusébio', dataEntrega: '2028-12-31' },
@@ -75,7 +75,7 @@ export const EmpreendimentosManager: React.FC<Props> = ({ isOpen, onClose, empre
           </button>
         </div>
         
-        <div className="p-4 overflow-y-auto flex-1 bg-gray-50">
+        <div className="p-4 overflow-y-auto flex-1 bg-white">
           <div className="space-y-3">
             {list.map((emp) => (
               <div key={emp.id} className="flex items-center gap-3 bg-white p-3 rounded-md border border-gray-200 shadow-sm">
