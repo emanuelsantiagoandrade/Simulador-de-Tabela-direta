@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Printer, AlertTriangle, ChevronDown, ChevronUp, Settings } from 'lucide-react';
+import logoImg from './logo_groupdirectional.png';
 import { EmpreendimentosManager, EmpreendimentoData, defaultEmpreendimentos } from './components/EmpreendimentosManager';
 
 // --- Utilities ---
@@ -471,7 +472,7 @@ export default function App() {
         <div className="max-w-6xl mx-auto px-4 flex flex-col items-center">
           {!imageError ? (
             <img 
-              src="/logo_groupdirectional.png" 
+              src={logoImg} 
               alt="Direcional e Riva Incorporadora" 
               className="h-40 object-contain mb-6 print:h-32 print:mb-4"
               onError={() => setImageError(true)}
@@ -483,8 +484,8 @@ export default function App() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-5xl font-bold text-[#003366] italic print:text-3xl">R</span>
-                <span className="text-4xl font-bold text-gray-700 tracking-widest print:text-2xl">RIVA</span>
-                <span className="text-sm font-normal text-gray-500 tracking-widest mt-1 print:mt-0 print:text-[10px]">INCORPORADORA</span>
+                <span className="text-4xl font-bold text-gray-700 tracking-widest print:text-2xl -ml-2">IVA</span>
+                <span className="text-sm font-normal text-gray-500 tracking-widest mt-1 print:mt-0 print:text-[10px] ml-2">INCORPORADORA</span>
               </div>
             </div>
           )}
