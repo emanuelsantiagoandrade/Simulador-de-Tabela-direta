@@ -51,26 +51,33 @@ const CurrencyInput = ({ value, onChange, className = '', readOnly = false }: an
       onFocus={!readOnly ? handleFocus : undefined}
       onBlur={!readOnly ? handleBlur : undefined}
       readOnly={readOnly}
-      className={`w-full px-2 py-1 print:px-1 print:py-0 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 outline-none text-right ${readOnly ? 'bg-white text-gray-600 cursor-not-allowed' : 'bg-white'} ${className}`}
+      className={`w-full px-3 py-2 print:px-1 print:py-0 border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 focus:bg-blue-50/30 transition-colors outline-none text-right font-medium ${readOnly ? 'bg-transparent text-gray-700 cursor-default hover:border-transparent' : 'bg-gray-50/50'} ${className}`}
     />
   );
 };
 
 const PercentInput = ({ value, onChange, className = '', readOnly = false }: any) => {
   return (
-    <div className="relative w-full">
+    <div className="relative w-full group">
       <input
         type="number"
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
         readOnly={readOnly}
         step="0.01"
-        className={`w-full px-2 py-1 print:px-1 print:py-0 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 outline-none text-right pr-8 ${readOnly ? 'bg-white text-gray-600' : 'bg-white'} ${className}`}
+        className={`w-full px-3 py-2 print:px-1 print:py-0 border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 focus:bg-blue-50/30 transition-colors outline-none text-right pr-8 font-medium ${readOnly ? 'bg-transparent text-gray-700 cursor-default hover:border-transparent' : 'bg-gray-50/50'} ${className}`}
       />
-      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 font-medium">%</span>
+      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium group-focus-within:text-blue-600 transition-colors">%</span>
     </div>
   );
 };
+
+const Field = ({ label, children, className = '' }: { label: React.ReactNode, children: React.ReactNode, className?: string }) => (
+  <div className={`flex flex-col border-b border-slate-100 last:border-0 p-3 print:p-1 ${className}`}>
+    <span className="text-[16px] font-semibold text-slate-500 uppercase tracking-wider mb-1 print:text-[10px]">{label}</span>
+    <div className="text-slate-900 font-medium text-[16px] print:text-[12px]">{children}</div>
+  </div>
+);
 
 const PreSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, valorBase: number, dataInicio: string }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -103,17 +110,17 @@ const PreSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
   const installments = getSimulatedInstallments();
 
   return (
-    <div className="border border-slate-200 shadow-sm bg-white print:hidden rounded-xl overflow-hidden">
+    <div className="bg-white print:hidden border-t border-slate-100">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-white p-2 font-bold text-center border-b border-slate-200 text-sm flex items-center justify-between hover:bg-slate-50 transition-colors"
+        className="w-full bg-slate-50 p-3 font-bold text-center text-sm flex items-center justify-between hover:bg-slate-100 transition-colors text-slate-700"
       >
         <span>Simulação das Parcelas Pré-Chaves (INCC)</span>
         {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
       </button>
       
       {isOpen && (
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 border-t border-slate-100">
           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 text-sm text-yellow-800">
             <div className="flex items-start gap-2">
               <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
@@ -168,6 +175,7 @@ const PreSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
 const PosSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, valorBase: number, dataInicio: string }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [ipcaSimulado, setIpcaSimulado] = useState(0.5);
+  const [printSimulation, setPrintSimulation] = useState(false);
 
   const getSimulatedInstallments = () => {
     const list = [];
@@ -211,70 +219,83 @@ const PosSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
   const installments = getSimulatedInstallments();
 
   return (
-    <div className="border border-slate-200 shadow-sm bg-white print:hidden rounded-xl overflow-hidden">
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-white p-2 font-bold text-center border-b border-slate-200 text-sm flex items-center justify-between hover:bg-slate-50 transition-colors"
-      >
-        <span>Simulação das Parcelas Pós-Chaves (Tabela SAC)</span>
-        {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-      </button>
+    <div className={`bg-white border-t border-slate-100 ${printSimulation ? '' : 'print:hidden'}`}>
+      <div className="flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors">
+        <button 
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex-1 p-3 font-bold text-left text-sm flex items-center justify-between text-slate-700"
+        >
+          <span>Simulação das Parcelas Pós-Chaves (Tabela SAC)</span>
+          {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+        </button>
+        <div className="pr-4 pl-2 flex items-center gap-2 print:hidden border-l border-slate-200" onClick={e => e.stopPropagation()}>
+          <input 
+            type="checkbox" 
+            id="print-pos-sim" 
+            checked={printSimulation} 
+            onChange={(e) => setPrintSimulation(e.target.checked)} 
+            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
+          />
+          <label htmlFor="print-pos-sim" className="text-xs font-semibold text-slate-600 cursor-pointer uppercase tracking-wider">Imprimir</label>
+        </div>
+      </div>
       
-      {isOpen && (
-        <div className="p-4 space-y-4">
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 text-sm text-yellow-800">
-            <div className="flex items-start gap-2">
-              <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
-              <p>
-                <strong>Aviso Importante:</strong> Esta é apenas uma simulação para fins de estimativa utilizando o sistema de amortização constante (SAC). 
-                Os juros de <strong>1% + IPCA</strong> são aplicados sobre o saldo devedor, que diminui a cada mês. 
-                Como o IPCA varia mês a mês, é impossível prever o valor exato das parcelas futuras.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-4 bg-white p-3 rounded border border-gray-200">
-            <div className="flex items-center gap-4">
-              <label className="font-semibold text-gray-700 text-sm">
-                IPCA Simulado (ao mês):
-              </label>
-              <div className="w-32">
-                <PercentInput value={ipcaSimulado} onChange={setIpcaSimulado} />
-              </div>
-            </div>
-            <div className="text-sm text-gray-600 bg-white px-3 py-1.5 rounded border border-gray-200 font-medium">
-              Taxa total anual (1% + IPCA): <span className="text-blue-700 font-bold">{((Math.pow(1 + ((1 + ipcaSimulado) / 100), 12) - 1) * 100).toFixed(2).replace('.', ',')}%</span>
-            </div>
-          </div>
-
-          <div className="max-h-96 overflow-y-auto border border-gray-300 rounded">
-            <table className="w-full text-sm text-center">
-              <thead className="bg-white sticky top-0 shadow-sm">
-                <tr>
-                  <th className="p-2 border-b border-r border-gray-300">Parcela</th>
-                  <th className="p-2 border-b border-r border-gray-300">Data</th>
-                  <th className="p-2 border-b border-r border-gray-300">Amortização</th>
-                  <th className="p-2 border-b border-r border-gray-300">Juros (1% + IPCA)</th>
-                  <th className="p-2 border-b border-r border-gray-300">Valor da Parcela</th>
-                  <th className="p-2 border-b border-gray-300">Saldo Devedor</th>
-                </tr>
-              </thead>
-              <tbody>
-                {installments.map((inst) => (
-                  <tr key={inst.numero} className="border-b border-gray-200 hover:bg-gray-50">
-                    <td className="p-2 border-r border-gray-300 font-medium">{inst.numero} / {parcelas}</td>
-                    <td className="p-2 border-r border-gray-300">{inst.data}</td>
-                    <td className="p-2 border-r border-gray-300 text-gray-600">{formatCurrency(inst.amortizacao)}</td>
-                    <td className="p-2 border-r border-gray-300 text-red-600">+{formatCurrency(inst.juros)}</td>
-                    <td className="p-2 border-r border-gray-300 font-bold text-blue-800">{formatCurrency(inst.valor)}</td>
-                    <td className="p-2 text-gray-600">{formatCurrency(inst.saldoDevedor)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div className={`${isOpen ? 'block' : 'hidden'} ${printSimulation ? 'print:block' : ''} p-4 space-y-4 border-t border-slate-100`}>
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 text-sm text-yellow-800">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+            <p>
+              <strong>Aviso Importante:</strong> Esta é apenas uma simulação para fins de estimativa utilizando o sistema de amortização constante (SAC). 
+              Os juros de <strong>1% + IPCA</strong> são aplicados sobre o saldo devedor, que diminui a cada mês. 
+              Como o IPCA varia mês a mês, é impossível prever o valor exato das parcelas futuras.
+            </p>
           </div>
         </div>
-      )}
+
+        <div className="flex flex-wrap items-center gap-4 bg-white p-3 rounded border border-gray-200">
+          <div className="flex items-center gap-4 print:hidden">
+            <label className="font-semibold text-gray-700 text-sm">
+              IPCA Simulado (ao mês):
+            </label>
+            <div className="w-32">
+              <PercentInput value={ipcaSimulado} onChange={setIpcaSimulado} />
+            </div>
+          </div>
+          <div className="hidden print:block text-sm text-gray-700 font-semibold">
+            IPCA Simulado (ao mês): {ipcaSimulado.toFixed(2).replace('.', ',')}%
+          </div>
+          <div className="text-sm text-gray-600 bg-white px-3 py-1.5 rounded border border-gray-200 font-medium">
+            Taxa total anual (1% + IPCA): <span className="text-blue-700 font-bold">{((Math.pow(1 + ((1 + ipcaSimulado) / 100), 12) - 1) * 100).toFixed(2).replace('.', ',')}%</span>
+          </div>
+        </div>
+
+        <div className="max-h-96 overflow-y-auto print:max-h-none print:overflow-visible border border-gray-300 rounded">
+          <table className="w-full text-sm text-center">
+            <thead className="bg-white sticky top-0 shadow-sm print:static">
+              <tr>
+                <th className="p-2 border-b border-r border-gray-300">Parcela</th>
+                <th className="p-2 border-b border-r border-gray-300">Data</th>
+                <th className="p-2 border-b border-r border-gray-300">Amortização</th>
+                <th className="p-2 border-b border-r border-gray-300">Juros (1% + IPCA)</th>
+                <th className="p-2 border-b border-r border-gray-300">Valor da Parcela</th>
+                <th className="p-2 border-b border-gray-300">Saldo Devedor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {installments.map((inst) => (
+                <tr key={inst.numero} className="border-b border-gray-200 hover:bg-gray-50">
+                  <td className="p-2 border-r border-gray-300 font-medium">{inst.numero} / {parcelas}</td>
+                  <td className="p-2 border-r border-gray-300">{inst.data}</td>
+                  <td className="p-2 border-r border-gray-300 text-gray-600">{formatCurrency(inst.amortizacao)}</td>
+                  <td className="p-2 border-r border-gray-300 text-red-600">+{formatCurrency(inst.juros)}</td>
+                  <td className="p-2 border-r border-gray-300 font-bold text-blue-800">{formatCurrency(inst.valor)}</td>
+                  <td className="p-2 text-gray-600">{formatCurrency(inst.saldoDevedor)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 };
@@ -401,12 +422,10 @@ export default function App() {
     setPosPercent(Number(pos.toFixed(2)));
   };
 
-  const [imageError, setImageError] = useState(false);
-
   // Auto-calculate months until delivery when delivery date changes
   useEffect(() => {
     if (dataEntrega) {
-      const deliveryDate = new Date(dataEntrega);
+      const deliveryDate = new Date(dataEntrega + 'T12:00:00');
       const currentDate = new Date();
       
       const yearsDiff = deliveryDate.getFullYear() - currentDate.getFullYear();
@@ -465,30 +484,58 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white pb-32 font-sans text-gray-900">
+    <div className="min-h-screen bg-slate-50 pb-12 font-sans text-gray-900">
+      {/* Print Button - Top Right */}
+      <div className="max-w-6xl mx-auto px-4 pt-6 flex justify-end print:hidden">
+        <button 
+          onClick={() => {
+            try {
+              if (window.self !== window.top) {
+                setShowPrintModal(true);
+              } else {
+                window.print();
+              }
+            } catch (e) {
+              setShowPrintModal(true);
+            }
+          }}
+          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
+        >
+          <Printer className="w-5 h-5" />
+          Imprimir Plano
+        </button>
+      </div>
+
       {/* Header */}
-      <header className="bg-white shadow-sm py-10 mb-16 print:shadow-none print:py-6 print:mb-10">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col items-center">
-          {!imageError ? (
-            <img 
-              src="/logo.png" 
-              alt="Direcional e Riva Incorporadora" 
-              className="h-40 object-contain mb-6 print:h-32 print:mb-4"
-              onError={() => setImageError(true)}
-            />
-          ) : (
-            <div className="flex flex-col items-center mb-6 print:mb-4">
-              <div className="flex items-center gap-4 mb-1">
-                <h1 className="text-6xl font-extrabold text-[#003366] tracking-tighter italic print:text-4xl">DIRECIONAL</h1>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-5xl font-bold text-[#003366] italic print:text-3xl">R</span>
-                <span className="text-4xl font-bold text-gray-700 tracking-widest print:text-2xl -ml-2">IVA</span>
-                <span className="text-sm font-normal text-gray-500 tracking-widest mt-1 print:mt-0 print:text-[10px] ml-2">INCORPORADORA</span>
-              </div>
+      <header className="max-w-6xl mx-auto px-4 pt-6 pb-8 print:py-4 print:pb-6">
+        <div className="bg-white rounded-t-2xl shadow-sm overflow-hidden border border-slate-200">
+          {/* Logos Section */}
+          <div className="flex justify-between items-center p-6 sm:p-8">
+            {/* Direcional Logo */}
+            <div className="flex items-center">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-[#1A1B4B] tracking-tighter">DIRECIONAL</h1>
             </div>
-          )}
-          <h2 className="text-2xl mt-8 text-gray-800 print:mt-6 print:text-lg">Plano de pagamento <span className="font-bold">Tabela Direta</span></h2>
+            
+            {/* Riva Logo */}
+            <div className="flex flex-col items-end">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1A1B4B] tracking-tighter leading-none">RIVA</h2>
+              <span className="text-[10px] sm:text-xs font-bold text-gray-400 tracking-[0.2em] mt-1">INCORPORADORA</span>
+            </div>
+          </div>
+
+          {/* Proposta Banner */}
+          <div className="relative w-full overflow-hidden bg-gradient-to-r from-[#2B2D7C] via-[#8E1F58] to-[#E3003F]">
+            {/* Diagonal stripes overlay */}
+            <div 
+              className="absolute inset-0 opacity-20" 
+              style={{ 
+                backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.4) 0px, rgba(255,255,255,0.4) 2px, transparent 2px, transparent 8px)' 
+              }}
+            ></div>
+            <div className="relative py-4 text-center">
+              <h2 className="text-white font-bold text-xl sm:text-2xl tracking-[0.4em] uppercase ml-[0.4em]">Proposta Tabela Direta</h2>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -519,305 +566,141 @@ export default function App() {
         )}
 
         {/* Info and Values side by side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-[1.7fr_1fr] gap-6 print:gap-1 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-[1.7fr_1fr] gap-6 print:gap-4 items-start">
           {/* General Info */}
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm h-full">
-            <div className="grid grid-cols-[auto_1fr] border-b border-slate-100">
-              <div className="bg-white p-2 print:p-0.5 text-center font-bold text-xs tracking-wider text-slate-500 border-r border-slate-100 col-span-2 uppercase">INFORMAÇÕES DO IMÓVEL</div>
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm h-full flex flex-col">
+            <div className="bg-[#002699] p-3 print:p-1.5 rounded-t-xl">
+              <h3 className="font-bold text-[25px] tracking-wider text-white uppercase flex items-center gap-2">
+                Informações do Imóvel
+              </h3>
             </div>
-            <div className="grid grid-cols-[auto_1fr] border-b border-slate-100">
-              <div className="bg-white p-2 print:p-0.5 text-right font-semibold text-sm print:text-[10px] border-r border-slate-100 flex items-center justify-end whitespace-nowrap text-slate-600">Empreendimento:</div>
-              <div className="p-2 print:p-0.5 flex items-center gap-2">
-                <input 
-                  type="text"
-                  list="empreendimentos-list"
-                  value={empreendimento} 
-                  onChange={e => {
-                    setEmpreendimento(e.target.value);
-                    const emp = empreendimentosList.find(x => x.nome === e.target.value);
-                    if (emp && emp.dataEntrega) setDataEntrega(emp.dataEntrega);
-                  }} 
-                  className="w-full outline-none bg-transparent print:text-[10px] font-medium"
-                  placeholder="Digite ou selecione..."
-                />
-                <datalist id="empreendimentos-list">
-                  {empreendimentosList.map(emp => (
-                    <option key={emp.id} value={emp.nome} />
-                  ))}
-                </datalist>
-                <button 
-                  onClick={() => setShowEmpManager(true)} 
-                  className="print:hidden text-slate-400 hover:text-blue-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
-                  title="Gerenciar Empreendimentos"
-                >
-                  <Settings className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-            <div className="grid grid-cols-[auto_1fr] border-b border-slate-100">
-              <div className="bg-white p-2 print:p-0.5 text-right font-semibold text-sm print:text-[10px] border-r border-slate-100 flex items-center justify-end whitespace-nowrap text-slate-600">Unidade:</div>
-              <div className="p-2 print:p-0.5"><input type="text" value={unidade} onChange={e => setUnidade(e.target.value)} className="w-full outline-none bg-transparent print:text-[10px] font-medium" /></div>
-            </div>
-            <div className="grid grid-cols-[auto_1fr] border-b border-slate-100">
-              <div className="bg-white p-2 print:p-0.5 text-right font-semibold text-sm print:text-[10px] border-r border-slate-100 flex items-center justify-end whitespace-nowrap text-slate-600">Data de entrega:</div>
-              <div className="p-2 print:p-0.5 w-48 print:w-auto"><input type="date" value={dataEntrega} onChange={e => setDataEntrega(e.target.value)} className="w-full outline-none bg-transparent print:text-[10px] font-medium" /></div>
-            </div>
-            <div className="grid grid-cols-[auto_1fr]">
-              <div className="bg-white p-2 print:p-0.5 text-right font-semibold text-sm print:text-[10px] border-r border-slate-100 flex items-center justify-end whitespace-nowrap text-slate-600">Meses até entrega:</div>
-              <div className="p-2 print:p-0.5 w-24 print:w-auto"><input type="number" value={mesesAteEntrega} onChange={e => setMesesAteEntrega(parseInt(e.target.value) || 0)} className="w-full outline-none bg-transparent print:text-[10px] font-medium" /></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 p-1">
+              <Field label="Empreendimento" className="sm:col-span-2 print:col-span-2">
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="text"
+                    list="empreendimentos-list"
+                    value={empreendimento} 
+                    onChange={e => {
+                      setEmpreendimento(e.target.value);
+                      const emp = empreendimentosList.find(x => x.nome === e.target.value);
+                      if (emp && emp.dataEntrega) setDataEntrega(emp.dataEntrega);
+                    }} 
+                    className="w-full outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1"
+                    placeholder="Digite ou selecione..."
+                  />
+                  <datalist id="empreendimentos-list">
+                    {empreendimentosList.map(emp => (
+                      <option key={emp.id} value={emp.nome} />
+                    ))}
+                  </datalist>
+                  <button 
+                    onClick={() => setShowEmpManager(true)} 
+                    className="print:hidden text-slate-400 hover:text-blue-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                    title="Gerenciar Empreendimentos"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </button>
+                </div>
+              </Field>
+              <Field label="Unidade">
+                <input type="text" value={unidade} onChange={e => setUnidade(e.target.value)} className="w-full outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1" placeholder="Ex: Apto 101" />
+              </Field>
+              <Field label="Data de entrega">
+                <input type="date" value={dataEntrega} onChange={e => setDataEntrega(e.target.value)} className="w-full outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1" />
+              </Field>
+              <Field label="Meses até entrega" className="sm:col-span-2 print:col-span-2">
+                <input type="number" value={mesesAteEntrega} onChange={e => setMesesAteEntrega(parseInt(e.target.value) || 0)} className="w-32 outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1" />
+              </Field>
             </div>
           </div>
 
           {/* Values */}
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm h-full">
-            <div className="grid grid-cols-[1fr_1fr] border-b border-slate-100">
-              <div className="bg-white p-2 print:p-0.5 text-center font-bold text-xs tracking-wider text-slate-500 border-r border-slate-100 uppercase">DESCRIÇÃO</div>
-              <div className="bg-white p-2 print:p-0.5 text-center font-bold text-xs tracking-wider text-slate-500 uppercase">VALOR</div>
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm h-full flex flex-col">
+            <div className="bg-[#002699] p-3 print:p-1.5 rounded-t-xl">
+              <h3 className="font-bold text-[25px] tracking-wider text-white uppercase flex items-center gap-2">
+                Valores da Negociação
+              </h3>
             </div>
-            <div className="grid grid-cols-[1fr_1fr] border-b border-slate-100">
-              <div className="p-2 print:p-0.5 text-right font-semibold text-sm print:text-[10px] border-r border-slate-100 flex items-center justify-end whitespace-nowrap text-slate-600">Valor da Unidade</div>
-              <div className="p-2 print:p-0.5"><CurrencyInput value={valorUnidade} onChange={setValorUnidade} className="print:text-[10px] print:py-0 font-medium" /></div>
-            </div>
-            <div className="grid grid-cols-[1fr_1fr] border-b border-slate-100">
-              <div className="p-2 print:p-0.5 text-right font-semibold text-sm print:text-[10px] border-r border-slate-100 flex items-center justify-end whitespace-nowrap text-slate-600">Descontos</div>
-              <div className="p-2 print:p-0.5"><CurrencyInput value={descontos} onChange={setDescontos} className="print:text-[10px] print:py-0 font-medium text-red-500" /></div>
-            </div>
-            <div className="grid grid-cols-[1fr_1fr]">
-              <div className="p-2 print:p-0.5 text-right font-bold text-sm print:text-[10px] border-r border-slate-100 flex items-center justify-end whitespace-nowrap text-slate-800">Valor após descontos</div>
-              <div className="p-2 print:p-0.5"><CurrencyInput value={valorAposDescontos} onChange={() => {}} readOnly className="font-bold print:text-[10px] print:py-0 text-blue-700" /></div>
+            <div className="flex flex-col p-1">
+              <Field label="Valor da Unidade">
+                <CurrencyInput value={valorUnidade} onChange={setValorUnidade} className="text-lg text-left bg-transparent hover:bg-transparent focus:bg-transparent px-0 py-1" />
+              </Field>
+              <Field label="Descontos">
+                <CurrencyInput value={descontos} onChange={setDescontos} className="text-lg text-left text-red-600 bg-transparent hover:bg-transparent focus:bg-transparent px-0 py-1" />
+              </Field>
+              <Field label="Valor após descontos" className="bg-blue-50/30">
+                <CurrencyInput value={valorAposDescontos} onChange={() => {}} readOnly className="text-xl font-bold text-blue-800 text-left bg-transparent hover:bg-transparent focus:bg-transparent px-0 py-1" />
+              </Field>
             </div>
           </div>
         </div>
 
-        {/* Main Grid for Payment Plan */}
-        <div className="grid grid-cols-1 lg:grid-cols-[12fr_7fr_5fr] print:grid-cols-[1.7fr_1fr] gap-6 print:gap-2 items-start">
-          
-          {/* Column 1: ATO, PRE, POS */}
-          <div className="contents lg:block lg:space-y-6 print:block print:space-y-1">
-            
+        {/* ATO Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 print:grid-cols-2 gap-6 print:gap-4 items-start mb-6">
+          <div className="lg:col-span-2 print:col-span-2">
             {/* ATO Section */}
-            <div className="border border-slate-200 rounded-xl shadow-md bg-white overflow-hidden order-1">
-              {/* Header */}
-              <div className="grid grid-cols-2 sm:grid-cols-[0.8fr_1.2fr_1fr_1.6fr] print:grid-cols-[0.8fr_1.2fr_1fr_1.6fr] border-b border-slate-200">
-                <div className="bg-[#001f3f] text-white p-2 font-bold text-center flex items-center justify-center text-base sm:text-lg print:text-sm border-b sm:border-b-0 print:border-b-0 sm:border-r border-white/10">ATO</div>
-                <div className="bg-white text-slate-700 p-2 font-semibold text-center flex items-center justify-center border-b sm:border-b-0 print:border-b-0 border-r border-slate-200 text-xs sm:text-sm print:text-[10px]">Porcentagem ato:</div>
-                <div className="p-2 border-r border-slate-100 bg-white flex items-center">
-                  <PercentInput value={atoPercent} onChange={(val: number) => handlePercentChange('ato', val)} className="font-bold text-base sm:text-lg text-blue-900" />
-                </div>
-                <div className="p-2 bg-white flex items-center">
-                  <CurrencyInput 
-                    value={valorAtoTotal} 
-                    onChange={(v: number) => {
-                      if (valorAposDescontos > 0) {
-                        const newPercent = (v / valorAposDescontos) * 100;
-                        handlePercentChange('ato', newPercent);
-                      }
-                    }} 
-                    className="font-bold text-base sm:text-lg text-blue-900"
-                  />
-                </div>
+            <div className="bg-white border-2 border-[#002699] rounded-xl shadow-[0_0_15px_rgba(0,38,153,0.2)] h-full flex flex-col relative overflow-hidden">
+              <div className="bg-[#002699] p-3 print:p-1.5 rounded-t-lg flex justify-between items-center">
+                <h3 className="font-bold text-[25px] tracking-wider text-white uppercase flex items-center gap-2">
+                  <span className="bg-white text-[#002699] rounded-full w-8 h-8 flex items-center justify-center text-lg">1</span>
+                  Ato
+                </h3>
               </div>
               
-              {/* Sinais Table */}
-              <div className="grid grid-cols-[1fr_1fr_1fr] border-b border-slate-100 bg-white text-xs font-bold tracking-wider text-slate-500 uppercase text-center">
-                <div className="p-2 print:p-0.5 border-r border-slate-100">Sinal Ato</div>
-                <div className="p-2 print:p-0.5 border-r border-slate-100">Valor</div>
-                <div className="p-2 print:p-0.5">Data</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 p-1">
+                <Field label="Porcentagem (%)">
+                  <PercentInput value={atoPercent} onChange={(val: number) => handlePercentChange('ato', val)} className="py-1 text-lg font-bold text-blue-800 bg-transparent hover:bg-transparent focus:bg-transparent px-0" />
+                </Field>
+                <Field label="Valor Total">
+                  <CurrencyInput value={valorAtoTotal} onChange={(v: number) => { if (valorAposDescontos > 0) handlePercentChange('ato', (v / valorAposDescontos) * 100); }} className="py-1 text-lg font-bold text-blue-800 bg-transparent hover:bg-transparent focus:bg-transparent px-0" />
+                </Field>
               </div>
-              
-              {sinais.map((sinal) => (
-                <div key={sinal.id} className="grid grid-cols-[1fr_1fr_1fr] border-b border-slate-100 text-sm print:text-xs hover:bg-slate-50 transition-colors">
-                  <div className="p-2 print:p-0.5 border-r border-slate-100 font-semibold flex items-center justify-center text-slate-700">{sinal.label}</div>
-                  <div className="p-2 print:p-0.5 border-r border-slate-100">
-                    <CurrencyInput value={sinal.valor} onChange={(v: number) => updateSinal(sinal.id, 'valor', v)} className="print:text-xs print:py-0 font-medium" />
+
+              <div className="p-1 border-t border-slate-100">
+                <div className="grid grid-cols-[1fr_1fr_1fr] bg-slate-50 border-b border-slate-100 text-xs font-semibold tracking-wider text-slate-500 uppercase text-center p-2 rounded-t-lg">
+                  <div>Sinal Ato</div>
+                  <div>Valor</div>
+                  <div>Data</div>
+                </div>
+                
+                {sinais.map((sinal) => (
+                  <div key={sinal.id} className={`grid grid-cols-[1fr_1fr_1fr] border-b border-slate-100 text-sm hover:bg-slate-50 transition-colors items-center ${sinal.valor === 0 && !sinal.data ? 'print:hidden' : ''}`}>
+                    <div className="p-2 font-medium text-slate-700 text-center">{sinal.label}</div>
+                    <div className="p-2 relative">
+                      {sinal.id === 1 && (
+                        <div className="absolute -top-1 -right-4 bg-yellow-400 text-blue-900 text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm z-10 animate-pulse print:hidden uppercase whitespace-nowrap">
+                          Preencha Aqui ★
+                        </div>
+                      )}
+                      <CurrencyInput value={sinal.valor} onChange={(v: number) => updateSinal(sinal.id, 'valor', v)} className="py-1 text-center bg-transparent hover:bg-transparent focus:bg-transparent" />
+                    </div>
+                    <div className="p-2">
+                      <input type="date" value={sinal.data} onChange={(e) => updateSinal(sinal.id, 'data', e.target.value)} className="w-full outline-none text-center bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1" />
+                    </div>
                   </div>
-                  <div className="p-2 print:p-0.5">
-                    <input type="date" value={sinal.data} onChange={(e) => updateSinal(sinal.id, 'data', e.target.value)} className="w-full outline-none text-center print:text-xs bg-transparent" />
+                ))}
+                
+                <div className="grid grid-cols-[1fr_1fr_1fr] bg-slate-50 p-3 rounded-b-lg">
+                  <div className="font-bold text-right text-sm text-slate-600 pr-4">Total Sinais:</div>
+                  <div className={`font-bold text-center text-sm ${Math.abs(totalSinais - valorAtoTotal) > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
+                    {formatCurrency(totalSinais)}
+                  </div>
+                  <div className="text-xs text-slate-500 text-center flex items-center justify-center">
+                    ({qtdSinaisUtilizados} utilizados)
                   </div>
                 </div>
-              ))}
-              
-              {/* Total Sinais */}
-              <div className="grid grid-cols-[1fr_1fr_1fr] border-b border-slate-100 bg-white">
-                <div className="p-2 print:p-0.5 border-r border-slate-100 font-bold text-right text-sm print:text-xs text-slate-600">Total</div>
-                <div className={`p-2 print:p-0.5 border-r border-slate-100 font-bold text-right text-sm print:text-xs ${Math.abs(totalSinais - valorAtoTotal) > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
-                  {formatCurrency(totalSinais)}
-                </div>
-                <div className="p-2 print:p-0.5"></div>
               </div>
-              
-              {/* Qtd Sinais */}
-              <div className="grid grid-cols-[1fr_2fr] text-sm print:text-xs bg-white">
-                <div className="p-2 print:p-0.5 border-r border-slate-100 font-semibold text-right text-slate-600">Quantidade de sinais utilizado:</div>
-                <div className="p-2 print:p-0.5 text-center font-bold text-slate-800">{qtdSinaisUtilizados}</div>
-              </div>
-            </div>
-
-            {/* PRE Section */}
-            <div className="border border-slate-200 rounded-xl shadow-md bg-white overflow-hidden order-3">
-              <div className="bg-[#001f3f] text-white p-2 font-bold text-center border-b border-slate-200 text-xs sm:text-sm print:text-[10px]">
-                PRÉ - CORRIGIDA POR <span className="text-yellow-400">INCC</span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 print:grid-cols-4 border-b border-slate-200 text-sm">
-                <div className="bg-white text-slate-700 p-2 font-semibold flex items-center justify-center border-b sm:border-b-0 print:border-b-0 border-r border-slate-200 text-center leading-tight text-[9px] sm:text-[10px] print:text-[8px]">Porcentagem Pré</div>
-                <div className="p-2 border-b sm:border-b-0 border-r border-slate-100 bg-white flex items-center">
-                  <PercentInput value={prePercent} onChange={(val: number) => handlePercentChange('pre', val)} className="font-bold text-xs sm:text-sm text-blue-900" />
-                </div>
-                <div className="p-2 border-r border-slate-100 font-bold text-xs sm:text-sm flex items-center justify-center bg-white text-blue-900">
-                  {formatCurrency(valorPreTotal)}
-                </div>
-                <div className="grid grid-cols-[auto_1fr] bg-white">
-                   <div className="text-slate-700 p-1 px-2 font-semibold flex items-center justify-center border-r border-slate-200 text-[8px] sm:text-[9px] text-center leading-tight">Qtd.<br/>parc:</div>
-                   <div className="p-1 flex items-center bg-white">
-                     <input type="number" value={preParcelas} onChange={e => setPreParcelas(parseInt(e.target.value) || 0)} className="w-full text-center outline-none bg-transparent font-bold text-xs sm:text-sm text-blue-900" />
-                   </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-[1fr_1fr_1fr] border-b border-slate-100 bg-white text-[9px] font-bold tracking-wider text-slate-500 uppercase text-center">
-                <div className="p-1 print:p-0.5 border-r border-slate-100"></div>
-                <div className="p-1 print:p-0.5 border-r border-slate-100">Valor</div>
-                <div className="p-1 print:p-0.5">Data de Início</div>
-              </div>
-              <div className="grid grid-cols-[1fr_1fr_1fr] text-[10px] print:text-[9px]">
-                <div className="bg-white text-slate-700 p-2 print:p-0.5 font-semibold flex items-center justify-center border-r border-slate-200 text-center leading-tight">Parcelas até a entrega</div>
-                <div className="p-2 print:p-0.5 border-r border-slate-100 flex items-center justify-center font-bold text-blue-900">
-                  {formatCurrency(valorParcelaPre)}
-                </div>
-                <div className="p-2 print:p-0.5 flex items-center bg-white">
-                  <input type="date" value={preDataInicio} onChange={e => setPreDataInicio(e.target.value)} className="w-full outline-none text-center print:text-[9px] bg-transparent font-medium" />
-                </div>
-              </div>
-            </div>
-
-            <div className="order-4">
-              <PreSimulation 
-                parcelas={preParcelas} 
-                valorBase={valorParcelaPre} 
-                dataInicio={preDataInicio} 
-              />
-            </div>
-
-            {/* POS Section */}
-            <div className="border border-slate-200 rounded-xl shadow-md bg-white overflow-hidden order-7">
-              <div className="bg-[#001f3f] text-white p-2 text-center border-b border-slate-200 flex flex-col items-center justify-center">
-                <div className="font-bold text-xs sm:text-sm print:text-[10px]">
-                  PÓS - CORRIGIDA POR <span className="text-yellow-400">1% + IPCA</span>
-                </div>
-                <div className="text-[8px] sm:text-[9px] text-slate-300 font-medium mt-0.5">
-                  (O máximo permitido para o Pós-Chaves é de 60%)
-                </div>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 print:grid-cols-4 border-b border-slate-200 text-sm">
-                <div className="bg-white text-slate-700 p-2 font-semibold flex items-center justify-center border-b sm:border-b-0 print:border-b-0 border-r border-slate-200 text-center leading-tight text-[9px] sm:text-[10px] print:text-[8px]">Porcentagem PÓS</div>
-                <div className="p-2 border-b sm:border-b-0 border-r border-slate-100 bg-white flex items-center">
-                  <PercentInput value={posPercent} onChange={(val: number) => handlePercentChange('pos', val)} className="font-bold text-xs sm:text-sm text-blue-900" />
-                </div>
-                <div className="p-2 border-r border-slate-100 font-bold text-xs sm:text-sm flex items-center justify-center bg-white text-blue-900">
-                  {formatCurrency(valorPosTotal)}
-                </div>
-                <div className="grid grid-cols-[auto_1fr] bg-white">
-                   <div className="text-slate-700 p-1 px-3 font-semibold flex items-center justify-center border-r border-slate-200 text-[8px] sm:text-[9px] text-center leading-tight">Qtd.<br/>parc:</div>
-                   <div className="p-1 flex items-center bg-white">
-                     <input type="number" value={posParcelas} onChange={e => setPosParcelas(parseInt(e.target.value) || 0)} className="w-full text-center outline-none bg-transparent font-bold text-xs sm:text-sm text-blue-900" />
-                   </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-[1fr_1fr_1fr] border-b border-slate-100 bg-white text-[9px] font-bold tracking-wider text-slate-500 uppercase text-center">
-                <div className="p-1 print:p-0.5 border-r border-slate-100"></div>
-                <div className="p-1 print:p-0.5 border-r border-slate-100">Valor</div>
-                <div className="p-1 print:p-0.5">Data de Início</div>
-              </div>
-              <div className="grid grid-cols-[1fr_1fr_1fr] text-[10px] print:text-[9px]">
-                <div className="bg-white text-slate-700 p-2 print:p-0.5 font-semibold flex items-center justify-center border-r border-slate-200 text-center leading-tight">Parcelas após a entrega</div>
-                <div className="p-2 print:p-0.5 border-r border-slate-100 flex items-center justify-center font-bold text-blue-900">
-                  {formatCurrency(valorParcelaPos)}
-                </div>
-                <div className="p-2 print:p-0.5 flex items-center bg-white">
-                  <input type="date" value={posDataInicio} onChange={e => setPosDataInicio(e.target.value)} className="w-full outline-none text-center print:text-[9px] bg-transparent font-medium" />
-                </div>
-              </div>
-            </div>
-
-            <div className="order-8">
-              <PosSimulation 
-                parcelas={posParcelas} 
-                valorBase={valorParcelaPos} 
-                dataInicio={posDataInicio} 
-              />
             </div>
           </div>
 
-          {/* Column 2: Baloes */}
-          <div className="contents lg:block lg:space-y-6 print:block">
-            <div className="border border-slate-200 rounded-xl shadow-md bg-white overflow-hidden order-5">
-              <div className="grid grid-cols-[1fr_1fr] border-b border-slate-200 text-sm">
-                <div className="p-3 print:p-0.5 border-r border-slate-100 font-bold text-center bg-white text-slate-500 uppercase tracking-wider text-xs print:text-[10px]">Porcentagem</div>
-                <div className="p-3 print:p-0.5 flex items-center bg-white">
-                  <PercentInput value={baloesPercent} onChange={(val: number) => handlePercentChange('baloes', val)} className="text-center font-bold text-blue-900 print:text-[10px]" />
-                </div>
-              </div>
-              <div className="grid grid-cols-[1fr_1fr] border-b border-slate-200 text-sm">
-                <div className="p-3 print:p-0.5 border-r border-slate-100 font-bold text-center bg-white text-slate-500 uppercase tracking-wider text-xs print:text-[10px]">Valor</div>
-                <div className="p-3 print:p-0.5 text-center font-bold bg-white text-blue-900 print:text-[10px]">
-                  {formatCurrency(valorBaloesTotal)}
-                </div>
-              </div>
-              <div className="bg-[#001f3f] text-white p-3 font-bold text-center border-b border-slate-200 text-base sm:text-lg print:text-sm">
-                Balões
-              </div>
-              <div className="grid grid-cols-[1fr_1fr] border-b border-slate-100 bg-white text-xs font-bold tracking-wider text-slate-500 uppercase text-center">
-                <div className="p-2 print:p-0.5 border-r border-slate-100">Valor</div>
-                <div className="p-2 print:p-0.5">Data</div>
-              </div>
-              
-              {baloes.map((balao) => (
-                <div key={balao.id} className="grid grid-cols-[1fr_1fr] border-b border-slate-100 text-sm print:text-xs hover:bg-slate-50 transition-colors">
-                  <div className="p-2 print:p-0.5 border-r border-slate-100">
-                    <CurrencyInput value={balao.valor} onChange={(v: number) => updateBalao(balao.id, 'valor', v)} className="print:text-xs print:py-0 font-medium" />
-                  </div>
-                  <div className="p-2 print:p-0.5">
-                    <input type="date" value={balao.data} onChange={(e) => updateBalao(balao.id, 'data', e.target.value)} className="w-full outline-none text-center print:text-xs bg-transparent font-medium" />
-                  </div>
-                </div>
-              ))}
-              
-              <div className="grid grid-cols-[1fr_1fr] text-sm print:text-xs bg-white">
-                <div className="p-3 print:p-0.5 border-r border-slate-100 font-bold text-right text-slate-600">Total</div>
-                <div className={`p-3 print:p-0.5 font-bold text-center ${Math.abs(totalBaloes - valorBaloesTotal) > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
-                  {formatCurrency(totalBaloes)}
-                </div>
-              </div>
-            </div>
-            
-            {/* Print Button */}
-            <div className="flex justify-end print:hidden order-9">
-              <button 
-                onClick={() => {
-                  try {
-                    if (window.self !== window.top) {
-                      setShowPrintModal(true);
-                    } else {
-                      window.print();
-                    }
-                  } catch (e) {
-                    setShowPrintModal(true);
-                  }
-                }}
-                className="flex items-center gap-2 bg-blue-700 text-white px-6 py-4 rounded-xl font-bold hover:bg-blue-800 transition-all shadow-lg hover:shadow-xl w-full justify-center transform hover:-translate-y-0.5"
-              >
-                <Printer className="w-5 h-5" />
-                Imprimir Plano
-              </button>
-            </div>
-          </div>
-
-          {/* Column 3: Simuladores */}
-          <div className="contents lg:block lg:space-y-6 print:hidden">
-            
-            {/* Simulador de Ato */}
-            <div className="bg-white border border-slate-200 shadow-md rounded-xl overflow-hidden order-2">
-              <div className="bg-[#001f3f] text-white p-3 font-bold text-center border-b border-slate-200">
-                Simulador de Ato
+          <div className="print:hidden">
+            {/* Sugestão de parcelamento de ato */}
+            <div className="bg-white border-2 border-[#002699] shadow-lg rounded-xl overflow-hidden animate-[pulse_3s_infinite]">
+              <div className="bg-[#002699] p-3 rounded-t-lg">
+                <h3 className="font-bold text-[20px] tracking-wider text-white uppercase flex items-center gap-2">
+                  Sugestão de parcelamento de ato
+                </h3>
               </div>
               <div className="p-4 space-y-4">
                 <p className="text-sm text-slate-500 text-center">
@@ -825,7 +708,7 @@ export default function App() {
                 </p>
                 <div className="space-y-2">
                   {[2, 3, 4].map(num => (
-                    <div key={num} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors">
+                    <div key={num} className="flex justify-between items-center bg-white p-3 rounded-lg border border-slate-200 hover:border-blue-300 transition-colors shadow-sm">
                       <span className="font-bold text-slate-500 text-xs uppercase tracking-wider">{num}x de</span>
                       <span className="font-bold text-slate-900">{formatCurrency(valorAtoTotal / num)}</span>
                     </div>
@@ -833,11 +716,101 @@ export default function App() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Simulador de Balões */}
-            <div className="bg-white border border-slate-200 shadow-md rounded-xl overflow-hidden order-6">
-              <div className="bg-blue-600 text-white p-3 font-bold text-center border-b border-slate-200">
-                Simulador de Balões
+        {/* PRE Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 print:grid-cols-2 gap-6 print:gap-4 items-start mb-6">
+          <div className="lg:col-span-2 print:col-span-2">
+            {/* PRE Section */}
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm h-full flex flex-col">
+              <div className="bg-[#002699] p-3 print:p-1.5 rounded-t-xl flex justify-between items-center">
+                <h3 className="font-bold text-[25px] tracking-wider text-white uppercase flex items-center gap-2">
+                  Pré-Chaves (INCC)
+                </h3>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 p-1">
+                <Field label="Porcentagem (%)">
+                  <PercentInput value={prePercent} onChange={(val: number) => handlePercentChange('pre', val)} className="py-1 text-lg font-bold text-blue-800 bg-transparent hover:bg-transparent focus:bg-transparent px-0" />
+                </Field>
+                <Field label="Valor Total">
+                  <div className="py-1 text-lg font-bold text-blue-800 px-0">{formatCurrency(valorPreTotal)}</div>
+                </Field>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 p-1 border-t border-slate-100">
+                <Field label="Qtd. Parcelas">
+                  <input type="number" value={preParcelas} onChange={e => setPreParcelas(parseInt(e.target.value) || 0)} className="w-full outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1 text-lg font-bold text-blue-800" />
+                </Field>
+                <Field label="Valor da Parcela">
+                  <div className="py-1 text-lg font-bold text-blue-800">{formatCurrency(valorParcelaPre)}</div>
+                </Field>
+                <Field label="Data de Início">
+                  <input type="date" value={preDataInicio} onChange={e => setPreDataInicio(e.target.value)} className="w-full outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1 font-medium" />
+                </Field>
+              </div>
+              <PreSimulation parcelas={preParcelas} valorBase={valorParcelaPre} dataInicio={preDataInicio} />
+            </div>
+          </div>
+        </div>
+
+        {/* BALOES Row */}
+        <div className={`grid grid-cols-1 lg:grid-cols-3 print:grid-cols-2 gap-6 print:gap-4 items-start mb-6 ${(baloesPercent === 0 || totalBaloes === 0) ? 'print:hidden' : ''}`}>
+          <div className="lg:col-span-2 print:col-span-2">
+            {/* BALOES Section */}
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm h-full flex flex-col">
+              <div className="bg-[#002699] p-3 print:p-1.5 rounded-t-xl flex justify-between items-center">
+                <h3 className="font-bold text-[25px] tracking-wider text-white uppercase flex items-center gap-2">
+                  Balões
+                </h3>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 p-1">
+                <Field label="Porcentagem (%)">
+                  <PercentInput value={baloesPercent} onChange={(val: number) => handlePercentChange('baloes', val)} className="py-1 text-lg font-bold text-blue-800 bg-transparent hover:bg-transparent focus:bg-transparent px-0" />
+                </Field>
+                <Field label="Valor Total">
+                  <div className="py-1 text-lg font-bold text-blue-800 px-0">{formatCurrency(valorBaloesTotal)}</div>
+                </Field>
+              </div>
+
+              <div className="p-1 border-t border-slate-100">
+                <div className="grid grid-cols-[1fr_1fr] bg-slate-50 border-b border-slate-100 text-xs font-semibold tracking-wider text-slate-500 uppercase text-center p-2 rounded-t-lg">
+                  <div>Valor</div>
+                  <div>Data</div>
+                </div>
+                
+                <div className="max-h-64 overflow-y-auto">
+                  {baloes.map((balao) => (
+                    <div key={balao.id} className={`grid grid-cols-[1fr_1fr] border-b border-slate-100 text-sm hover:bg-slate-50 transition-colors items-center ${balao.valor === 0 && !balao.data ? 'print:hidden' : ''}`}>
+                      <div className="p-2">
+                        <CurrencyInput value={balao.valor} onChange={(v: number) => updateBalao(balao.id, 'valor', v)} className="py-1 text-center bg-transparent hover:bg-transparent focus:bg-transparent" />
+                      </div>
+                      <div className="p-2">
+                        <input type="date" value={balao.data} onChange={(e) => updateBalao(balao.id, 'data', e.target.value)} className="w-full outline-none text-center bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="grid grid-cols-[1fr_1fr] bg-slate-50 p-3 rounded-b-lg">
+                  <div className="font-bold text-right text-sm text-slate-600 pr-4">Total Balões:</div>
+                  <div className={`font-bold text-center text-sm ${Math.abs(totalBaloes - valorBaloesTotal) > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
+                    {formatCurrency(totalBaloes)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="print:hidden">
+            {/* Sugestão de parcelamento de balões */}
+            <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
+              <div className="bg-[#002699] p-3 rounded-t-xl">
+                <h3 className="font-bold text-[20px] tracking-wider text-white uppercase flex items-center gap-2">
+                  Sugestão de parcelamento de balões
+                </h3>
               </div>
               <div className="p-4 space-y-4">
                 <p className="text-sm text-slate-500 text-center">
@@ -845,7 +818,7 @@ export default function App() {
                 </p>
                 <div className="space-y-2">
                   {[2, 3, 4, 5, 6].map(num => (
-                    <div key={num} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors">
+                    <div key={num} className="flex justify-between items-center bg-white p-3 rounded-lg border border-slate-200 hover:border-blue-300 transition-colors shadow-sm">
                       <span className="font-bold text-slate-500 text-xs uppercase tracking-wider">{num}x de</span>
                       <span className="font-bold text-blue-700">{formatCurrency(valorBaloesTotal / num)}</span>
                     </div>
@@ -853,23 +826,59 @@ export default function App() {
                 </div>
                 <div className="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-xl flex items-start gap-3 text-amber-800 text-xs leading-relaxed shadow-sm">
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
-                  <p><strong className="text-amber-900">Aviso:</strong> Os balões devem ser até no máximo 6 meses da entrega.</p>
+                  <p><strong className="text-amber-900">Aviso:</strong> Os balões podem ser até 3 meses antes da entrega.</p>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
+        {/* POS Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 print:grid-cols-2 gap-6 print:gap-4 items-start mb-6">
+          <div className="lg:col-span-2 print:col-span-2">
+            {/* POS Section */}
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm h-full flex flex-col">
+              <div className="bg-[#002699] p-3 print:p-1.5 rounded-t-xl flex justify-between items-center">
+                <div className="flex flex-col">
+                  <h3 className="font-bold text-[25px] tracking-wider text-white uppercase flex items-center gap-2">
+                    Pós-Chaves (1% + IPCA)
+                  </h3>
+                  <span className="text-[15px] text-white/80">Máximo permitido: 60%</span>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 p-1">
+                <Field label="Porcentagem (%)">
+                  <PercentInput value={posPercent} onChange={(val: number) => handlePercentChange('pos', val)} className="py-1 text-lg font-bold text-blue-800 bg-transparent hover:bg-transparent focus:bg-transparent px-0" />
+                </Field>
+                <Field label="Valor Total">
+                  <div className="py-1 text-lg font-bold text-blue-800 px-0">{formatCurrency(valorPosTotal)}</div>
+                </Field>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 p-1 border-t border-slate-100">
+                <Field label="Qtd. Parcelas">
+                  <input type="number" value={posParcelas} onChange={e => setPosParcelas(parseInt(e.target.value) || 0)} className="w-full outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1 text-lg font-bold text-blue-800" />
+                </Field>
+                <Field label="Valor da Parcela">
+                  <div className="py-1 text-lg font-bold text-blue-800">{formatCurrency(valorParcelaPos)}</div>
+                </Field>
+                <Field label="Data de Início">
+                  <input type="date" value={posDataInicio} onChange={e => setPosDataInicio(e.target.value)} className="w-full outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1 font-medium" />
+                </Field>
+              </div>
+              <PosSimulation parcelas={posParcelas} valorBase={valorParcelaPos} dataInicio={posDataInicio} />
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Text */}
+        <div className="mt-8 p-6 bg-slate-50 rounded-xl border border-slate-200 text-sm text-slate-600 space-y-3 print:mt-4 print:p-4 print:text-[10px]">
+          <p>1. Essa é apenas uma simulação, para valores exatos seria necessário a aprovação de crédito e inserção dos dados dentro do sistema da construtora.</p>
+          <p>2. Essa proposta não garante a reserva da unidade em questão.</p>
+          <p>3. Esta é uma proposta simulada com validade condicionada à política comercial do mês vigente. Os valores e condições definitivos estão sujeitos à validação e reserva oficial dentro do sistema da Direcional.</p>
         </div>
       </main>
-
-      {/* Footer AdSense */}
-      <footer className="fixed bottom-0 w-full bg-white border-t border-slate-200 p-2 text-center z-40 print:hidden shadow-[0_-4px_10px_-1px_rgba(0,0,0,0.05)]">
-        <div className="max-w-3xl mx-auto bg-slate-50 h-[90px] flex items-center justify-center text-slate-400 text-sm border border-dashed border-slate-300 rounded-xl relative overflow-hidden">
-          <span className="z-10 bg-white/90 px-3 py-1.5 rounded-full shadow-sm font-medium border border-slate-100">Publicidade Google AdSense (728x90)</span>
-          {/* Placeholder for actual AdSense script */}
-          <div className="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/diagonal-stripes.png')]"></div>
-        </div>
-      </footer>
 
       {/* Print Modal */}
       {showPrintModal && (
