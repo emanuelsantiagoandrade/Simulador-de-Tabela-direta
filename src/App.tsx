@@ -1,6 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Printer, AlertTriangle, ChevronDown, ChevronUp, Settings } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { EmpreendimentosManager, EmpreendimentoData, defaultEmpreendimentos } from './components/EmpreendimentosManager';
+
+// --- Constants ---
+const EMPREENDIMENTOS: Record<string, { data: string, link: string }> = {
+  "Conquista Maraponga": { data: "2027-01-31", link: "https://drive.google.com/drive/folders/1SG_hjajREyteMcr7_M2swybXdswYcLds?usp=drive_link" },
+  "Conquista Messejana": { data: "2028-05-31", link: "https://drive.google.com/drive/folders/1LXqN4e7ib6GA37f_zSVJWk8232rs7bRi?usp=drive_link" },
+  "Estilo Fátima": { data: "2027-03-30", link: "https://drive.google.com/drive/folders/14hOJLPrMCvHRzk9VGjxjQNoPrRj_nUx2?usp=drive_link" },
+  "Estilo Passaré": { data: "2026-10-31", link: "https://drive.google.com/drive/folders/1GvKhDsrZ4rnEa-NuNymCKwOezcv4CGXf?usp=drive_link" },
+  "Estilo Praia": { data: "2026-10-31", link: "https://drive.google.com/drive/folders/1jqFVnn8Pf5Qd-aR-GsHLkkRVCJ3a-JvU?usp=drive_link" },
+  "Lúmina Fátima": { data: "2028-06-30", link: "https://drive.google.com/drive/folders/1gdRJMDH2e2Ecv8U8bb7C1uG-MWeETLCo?usp=drive_link" },
+  "MyPlace Benfica": { data: "Entregue", link: "https://drive.google.com/drive/folders/1nqzfTcIAtUj9sdAgXlKzcKeBfVv3NlMZ?usp=drive_link" },
+  "Nature Arbo": { data: "2028-05-31", link: "https://drive.google.com/drive/folders/1f_OG7VKMFagDX_UoxWK8-SgeX15kfYaN?usp=drive_link" },
+  "Nature Eusébio": { data: "2028-07-31", link: "https://drive.google.com/drive/folders/1AfU2DAam5h6s6wVmSzWnTbOcUUKiNHAg?usp=drive_link" },
+  "Orizon Rooftop": { data: "2029-04-30", link: "https://drive.google.com/drive/folders/1QvUfUg3-27uVDQMpAV9z60EAWCpdsMxC?usp=drive_link" },
+  "Reserva Flora": { data: "Entregue", link: "https://drive.google.com/drive/folders/1aQGlqupGsA672ilyPUeMxUqNRkSBTBAE?usp=drive_link" },
+  "Seano Beach": { data: "2028-07-30", link: "https://drive.google.com/drive/folders/1Ou40hjybFktfT3-zQZFPqRtwdHxS8DmN?usp=drive_link" },
+  "Viva Nova Caucaia": { data: "2027-04-30", link: "https://drive.google.com/drive/folders/1VelEu-DcrA8R763DiG3ifwebVwkNNPdt?usp=drive_link" },
+  "Viva Vida Coqueiros": { data: "2027-09-30", link: "https://drive.google.com/drive/folders/1I8YkjufrVCB5UDVd867P-Y5QYGaQaE-_?usp=drive_link" },
+  "Viva Vida Jandaia": { data: "2028-06-30", link: "https://drive.google.com/drive/folders/1_ojnKIEd8QPPlkCA7U65_AR2lU589a5h?usp=drive_link" },
+  "Viva Vida Maracanaú": { data: "2027-06-30", link: "https://drive.google.com/drive/folders/1x_3GxAQIth_noN4qZjrawwZ6IO35Ibyf?usp=drive_link" },
+  "Viva Vida Parque": { data: "Entregue", link: "https://drive.google.com/drive/folders/1RFswrgGeE2wOTAVt2a3uFbOXcl7CtN89?usp=drive_link" },
+  "Viva Vida Siqueira": { data: "2026-09-30", link: "https://drive.google.com/drive/folders/13h5L-fAHtaSusnKoB4t7j7qPbD9eH4Oc?usp=drive_link" },
+  "Viva Vida Sul": { data: "2028-04-30", link: "https://drive.google.com/drive/folders/1rag3UlzyFIkTVMkTxWFO79GUeOGtGZpM?usp=drive_link" },
+  "Viva Vida Tropical": { data: "Entregue", link: "https://drive.google.com/drive/folders/1WSWGcOTs_8_YgWJINXMjyOi391bNuSQN?usp=drive_link" }
+};
 
 // --- Utilities ---
 const formatCurrency = (value: number) => {
@@ -51,7 +76,7 @@ const CurrencyInput = ({ value, onChange, className = '', readOnly = false }: an
       onFocus={!readOnly ? handleFocus : undefined}
       onBlur={!readOnly ? handleBlur : undefined}
       readOnly={readOnly}
-      className={`w-full px-3 py-2 print:px-1 print:py-0 border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 focus:bg-blue-50/30 transition-colors outline-none text-right font-medium ${readOnly ? 'bg-transparent text-gray-700 cursor-default hover:border-transparent' : 'bg-gray-50/50'} ${className}`}
+      className={`w-full px-3 py-2 border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 focus:bg-blue-50/30 transition-colors outline-none text-right font-medium ${readOnly ? 'bg-transparent text-gray-700 cursor-default hover:border-transparent' : 'bg-gray-50/50'} ${className}`}
     />
   );
 };
@@ -65,7 +90,7 @@ const PercentInput = ({ value, onChange, className = '', readOnly = false }: any
         onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
         readOnly={readOnly}
         step="0.01"
-        className={`w-full px-3 py-2 print:px-1 print:py-0 border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 focus:bg-blue-50/30 transition-colors outline-none text-right pr-8 font-medium ${readOnly ? 'bg-transparent text-gray-700 cursor-default hover:border-transparent' : 'bg-gray-50/50'} ${className}`}
+        className={`w-full px-3 py-2 border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 focus:bg-blue-50/30 transition-colors outline-none text-right pr-8 font-medium ${readOnly ? 'bg-transparent text-gray-700 cursor-default hover:border-transparent' : 'bg-gray-50/50'} ${className}`}
       />
       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium group-focus-within:text-blue-600 transition-colors">%</span>
     </div>
@@ -73,9 +98,9 @@ const PercentInput = ({ value, onChange, className = '', readOnly = false }: any
 };
 
 const Field = ({ label, children, className = '' }: { label: React.ReactNode, children: React.ReactNode, className?: string }) => (
-  <div className={`flex flex-col border-b border-slate-100 last:border-0 p-3 print:p-1 ${className}`}>
-    <span className="text-[16px] font-semibold text-slate-500 uppercase tracking-wider mb-1 print:text-[10px]">{label}</span>
-    <div className="text-slate-900 font-medium text-[16px] print:text-[12px]">{children}</div>
+  <div className={`flex flex-col border-b border-slate-100 last:border-0 p-3 ${className} break-inside-avoid`}>
+    <span className="text-[16px] font-semibold text-slate-500 uppercase tracking-wider mb-1">{label}</span>
+    <div className="text-slate-900 font-medium text-[16px]">{children}</div>
   </div>
 );
 
@@ -219,16 +244,17 @@ const PosSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
   const installments = getSimulatedInstallments();
 
   return (
-    <div className={`bg-white border-t border-slate-100 ${printSimulation ? '' : 'print:hidden'}`}>
+    <div className={`bg-white border-t border-slate-100 ${printSimulation ? '' : 'print:hidden'}`} data-html2canvas-ignore={!printSimulation ? "true" : "false"}>
       <div className="flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors">
         <button 
           onClick={() => setIsOpen(!isOpen)}
           className="flex-1 p-3 font-bold text-left text-sm flex items-center justify-between text-slate-700"
+          data-html2canvas-ignore="true"
         >
           <span>Simulação das Parcelas Pós-Chaves (Tabela SAC)</span>
           {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
         </button>
-        <div className="pr-4 pl-2 flex items-center gap-2 print:hidden border-l border-slate-200" onClick={e => e.stopPropagation()}>
+        <div className="pr-4 pl-2 flex items-center gap-2 print:hidden border-l border-slate-200" onClick={e => e.stopPropagation()} data-html2canvas-ignore="true">
           <input 
             type="checkbox" 
             id="print-pos-sim" 
@@ -271,7 +297,7 @@ const PosSimulation = ({ parcelas, valorBase, dataInicio }: { parcelas: number, 
 
         <div className="max-h-96 overflow-y-auto print:max-h-none print:overflow-visible border border-gray-300 rounded">
           <table className="w-full text-sm text-center">
-            <thead className="bg-white sticky top-0 shadow-sm print:static">
+            <thead className="bg-white sticky top-0 shadow-sm">
               <tr>
                 <th className="p-2 border-b border-r border-gray-300">Parcela</th>
                 <th className="p-2 border-b border-r border-gray-300">Data</th>
@@ -315,6 +341,7 @@ export default function App() {
   });
   const [showEmpManager, setShowEmpManager] = useState(false);
 
+  const [nomeCliente, setNomeCliente] = useState('');
   const [empreendimento, setEmpreendimento] = useState('');
   const [unidade, setUnidade] = useState('');
   const [dataEntrega, setDataEntrega] = useState('');
@@ -362,8 +389,8 @@ export default function App() {
   const [posPercent, setPosPercent] = useState(60);
   const [posParcelas, setPosParcelas] = useState(120);
   const [posDataInicio, setPosDataInicio] = useState('');
-
   const [showPrintModal, setShowPrintModal] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
 
   // Handlers for percentage changes to maintain 40% pre-keys logic and 60% pos-keys logic
   const handlePercentChange = (source: 'ato' | 'pre' | 'baloes' | 'pos', newVal: number) => {
@@ -425,13 +452,24 @@ export default function App() {
   // Auto-calculate months until delivery when delivery date changes
   useEffect(() => {
     if (dataEntrega) {
+      if (dataEntrega === 'Entregue') {
+        setMesesAteEntrega(0);
+        return;
+      }
+      
       const deliveryDate = new Date(dataEntrega + 'T12:00:00');
+      if (isNaN(deliveryDate.getTime())) {
+        setMesesAteEntrega(0);
+        return;
+      }
+      
       const currentDate = new Date();
       
       const yearsDiff = deliveryDate.getFullYear() - currentDate.getFullYear();
       const monthsDiff = deliveryDate.getMonth() - currentDate.getMonth();
       
-      let totalMonths = (yearsDiff * 12) + monthsDiff;
+      // Adicionamos +1 pois o mês de entrega também conta como mês de pré
+      let totalMonths = (yearsDiff * 12) + monthsDiff + 1;
       if (totalMonths < 0) totalMonths = 0;
       
       setMesesAteEntrega(totalMonths);
@@ -474,6 +512,51 @@ export default function App() {
   const totalPagoReal = totalSinais + totalBaloes + valorPreTotal + valorPosTotal;
   const isValorValid = Math.abs(totalPagoReal - valorAposDescontos) < 0.01;
 
+  // Auto-fill Ato 1 if total signals is 0
+  useEffect(() => {
+    const currentTotal = sinais.reduce((acc, s) => acc + s.valor, 0);
+    if (valorAtoTotal > 0 && currentTotal === 0) {
+      setSinais(prev => prev.map(s => s.id === 1 ? { ...s, valor: valorAtoTotal } : s));
+    }
+  }, [valorAtoTotal]);
+
+  // Auto-calculate signals dates and preDataInicio
+  useEffect(() => {
+    const atoDateStr = sinais[0].data;
+    if (!atoDateStr) return;
+
+    const atoDate = new Date(atoDateStr + 'T12:00:00');
+    let lastDate = new Date(atoDate);
+    let updatedSinais = false;
+    const newSinais = [...sinais];
+
+    for (let i = 1; i < newSinais.length; i++) {
+      if (newSinais[i].valor > 0) {
+        const nextDate = new Date(atoDate);
+        nextDate.setMonth(atoDate.getMonth() + i);
+        const nextDateStr = nextDate.toISOString().split('T')[0];
+        if (newSinais[i].data !== nextDateStr) {
+          newSinais[i].data = nextDateStr;
+          updatedSinais = true;
+        }
+        lastDate = new Date(nextDate);
+      }
+    }
+
+    if (updatedSinais) {
+      setSinais(newSinais);
+    }
+
+    // Update preDataInicio: 15th of the month following the last signal
+    const preDate = new Date(lastDate);
+    preDate.setMonth(lastDate.getMonth() + 1);
+    preDate.setDate(15);
+    const preDateStr = preDate.toISOString().split('T')[0];
+    if (preDataInicio !== preDateStr) {
+      setPreDataInicio(preDateStr);
+    }
+  }, [sinais[0].data, sinais[1].valor, sinais[2].valor, sinais[3].valor]);
+
   // Handlers
   const updateSinal = (id: number, field: 'valor' | 'data', value: any) => {
     setSinais(sinais.map(s => s.id === id ? { ...s, [field]: value } : s));
@@ -483,10 +566,23 @@ export default function App() {
     setBaloes(baloes.map(b => b.id === id ? { ...b, [field]: value } : b));
   };
 
+  const applyAtoSuggestion = (num: number) => {
+    const valorParcela = valorAtoTotal / num;
+    const newSinais = sinais.map((s, idx) => {
+      if (idx < num) {
+        return { ...s, valor: valorParcela };
+      }
+      return { ...s, valor: 0, data: '' };
+    });
+    setSinais(newSinais);
+  };
+
+  const currentEmpData = empreendimentosList.find(emp => emp.nome === empreendimento);
+
   return (
     <div className="min-h-screen bg-slate-50 pb-12 font-sans text-gray-900">
       {/* Print Button - Top Right */}
-      <div className="max-w-6xl mx-auto px-4 pt-6 flex justify-end print:hidden">
+      <div className="max-w-6xl mx-auto px-4 pt-6 flex justify-end gap-3 print:hidden">
         <button 
           onClick={() => {
             try {
@@ -506,42 +602,47 @@ export default function App() {
         </button>
       </div>
 
-      {/* Header */}
-      <header className="max-w-6xl mx-auto px-4 pt-6 pb-8 print:py-4 print:pb-6">
-        <div className="bg-white rounded-t-2xl shadow-sm overflow-hidden border border-slate-200">
-          {/* Logos Section */}
-          <div className="flex justify-between items-center p-6 sm:p-8">
-            {/* Direcional Logo */}
-            <div className="flex items-center">
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-[#1A1B4B] tracking-tighter">DIRECIONAL</h1>
+      <div id="pdf-capture-container" className="bg-slate-50">
+        {/* Header */}
+        <header className="max-w-6xl mx-auto px-4 pt-6 pb-8">
+          <div className="bg-white rounded-t-2xl shadow-sm overflow-hidden border border-slate-200">
+            {/* Logos Section */}
+            <div className="flex justify-between items-center p-6 sm:p-8">
+              {/* Direcional Logo */}
+              <div className="flex items-center">
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-[#1A1B4B] tracking-tighter">DIRECIONAL</h1>
+              </div>
+              
+              {/* Riva Logo */}
+              <div className="flex flex-col items-end">
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1A1B4B] tracking-tighter leading-none">RIVA</h2>
+                <span className="text-[10px] sm:text-xs font-bold text-gray-400 tracking-[0.2em] mt-1">INCORPORADORA</span>
+              </div>
             </div>
-            
-            {/* Riva Logo */}
-            <div className="flex flex-col items-end">
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1A1B4B] tracking-tighter leading-none">RIVA</h2>
-              <span className="text-[10px] sm:text-xs font-bold text-gray-400 tracking-[0.2em] mt-1">INCORPORADORA</span>
+
+            {/* Proposta Banner */}
+            <div className="relative w-full overflow-hidden bg-gradient-to-r from-[#2B2D7C] via-[#8E1F58] to-[#E3003F]">
+              {/* Diagonal stripes overlay */}
+              <div 
+                className="absolute inset-0 opacity-20" 
+                style={{ 
+                  backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.4) 0px, rgba(255,255,255,0.4) 2px, transparent 2px, transparent 8px)' 
+                }}
+              ></div>
+              <div className="relative py-4 text-center">
+                <h2 className="text-white font-bold text-xl sm:text-2xl tracking-[0.4em] uppercase ml-[0.4em]">Proposta Tabela Direta</h2>
+              </div>
             </div>
           </div>
+        </header>
 
-          {/* Proposta Banner */}
-          <div className="relative w-full overflow-hidden bg-gradient-to-r from-[#2B2D7C] via-[#8E1F58] to-[#E3003F]">
-            {/* Diagonal stripes overlay */}
-            <div 
-              className="absolute inset-0 opacity-20" 
-              style={{ 
-                backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.4) 0px, rgba(255,255,255,0.4) 2px, transparent 2px, transparent 8px)' 
-              }}
-            ></div>
-            <div className="relative py-4 text-center">
-              <h2 className="text-white font-bold text-xl sm:text-2xl tracking-[0.4em] uppercase ml-[0.4em]">Proposta Tabela Direta</h2>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-4 space-y-6 print:max-w-none print:px-2 print:space-y-1">
-        
-        {/* Validation Warnings */}
+        <main 
+          ref={mainRef} 
+          id="proposta-content"
+          className="max-w-6xl mx-auto px-4 space-y-6"
+        >
+          
+          {/* Validation Warnings */}
         {(!isPercentExactly100 || !isValorValid) && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 flex flex-col gap-2 print:hidden shadow-sm rounded-r-md">
             <div className="flex items-center gap-3">
@@ -566,41 +667,69 @@ export default function App() {
         )}
 
         {/* Info and Values side by side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-[1.7fr_1fr] gap-6 print:gap-4 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start break-inside-avoid">
           {/* General Info */}
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm h-full flex flex-col">
-            <div className="bg-[#002699] p-3 print:p-1.5 rounded-t-xl">
+            <div className="bg-[#002699] p-3 rounded-t-xl">
               <h3 className="font-bold text-[25px] tracking-wider text-white uppercase flex items-center gap-2">
                 Informações do Imóvel
               </h3>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 p-1">
-              <Field label="Empreendimento" className="sm:col-span-2 print:col-span-2">
-                <div className="flex items-center gap-2">
-                  <input 
-                    type="text"
-                    list="empreendimentos-list"
-                    value={empreendimento} 
-                    onChange={e => {
-                      setEmpreendimento(e.target.value);
-                      const emp = empreendimentosList.find(x => x.nome === e.target.value);
-                      if (emp && emp.dataEntrega) setDataEntrega(emp.dataEntrega);
-                    }} 
-                    className="w-full outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1"
-                    placeholder="Digite ou selecione..."
-                  />
-                  <datalist id="empreendimentos-list">
-                    {empreendimentosList.map(emp => (
-                      <option key={emp.id} value={emp.nome} />
-                    ))}
-                  </datalist>
-                  <button 
-                    onClick={() => setShowEmpManager(true)} 
-                    className="print:hidden text-slate-400 hover:text-blue-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
-                    title="Gerenciar Empreendimentos"
-                  >
-                    <Settings className="w-4 h-4" />
-                  </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 p-1">
+              <Field label="Nome do Cliente" className="sm:col-span-2">
+                <input type="text" value={nomeCliente} onChange={e => setNomeCliente(e.target.value)} className="w-full outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1" placeholder="Nome completo do cliente" />
+              </Field>
+              <Field label="Empreendimento" className="sm:col-span-2">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="text"
+                      list="empreendimentos-list"
+                      value={empreendimento} 
+                      onChange={e => {
+                        const nome = e.target.value;
+                        setEmpreendimento(nome);
+                        
+                        // Prioridade para a constante EMPREENDIMENTOS
+                        if (EMPREENDIMENTOS[nome]) {
+                          setDataEntrega(EMPREENDIMENTOS[nome].data);
+                        } else {
+                          const emp = empreendimentosList.find(x => x.nome === nome);
+                          if (emp && emp.dataEntrega) setDataEntrega(emp.dataEntrega);
+                        }
+                      }} 
+                      className="w-full outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1"
+                      placeholder="Digite ou selecione..."
+                    />
+                    <datalist id="empreendimentos-list">
+                      {[...empreendimentosList]
+                        .sort((a, b) => a.nome.localeCompare(b.nome))
+                        .map(emp => (
+                          <option key={emp.id} value={emp.nome} />
+                        ))}
+                    </datalist>
+                    <button 
+                      onClick={() => setShowEmpManager(true)} 
+                      className="print:hidden text-slate-400 hover:text-blue-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                      title="Gerenciar Empreendimentos"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {currentEmpData?.linkArquivos && (
+                    <div className="flex justify-start print:hidden" data-html2canvas-ignore="true">
+                      <a 
+                        href={currentEmpData.linkArquivos} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg no-underline"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-external-link"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+                        Ver Arquivos do Empreendimento
+                      </a>
+                    </div>
+                  )}
                 </div>
               </Field>
               <Field label="Unidade">
@@ -609,7 +738,7 @@ export default function App() {
               <Field label="Data de entrega">
                 <input type="date" value={dataEntrega} onChange={e => setDataEntrega(e.target.value)} className="w-full outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1" />
               </Field>
-              <Field label="Meses até entrega" className="sm:col-span-2 print:col-span-2">
+              <Field label="Meses até entrega" className="sm:col-span-2">
                 <input type="number" value={mesesAteEntrega} onChange={e => setMesesAteEntrega(parseInt(e.target.value) || 0)} className="w-32 outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1" />
               </Field>
             </div>
@@ -617,7 +746,7 @@ export default function App() {
 
           {/* Values */}
           <div className="bg-white border border-slate-200 rounded-xl shadow-sm h-full flex flex-col">
-            <div className="bg-[#002699] p-3 print:p-1.5 rounded-t-xl">
+            <div className="bg-[#002699] p-3 rounded-t-xl">
               <h3 className="font-bold text-[25px] tracking-wider text-white uppercase flex items-center gap-2">
                 Valores da Negociação
               </h3>
@@ -637,11 +766,11 @@ export default function App() {
         </div>
 
         {/* ATO Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 print:grid-cols-2 gap-6 print:gap-4 items-start mb-6">
-          <div className="lg:col-span-2 print:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mb-6">
+          <div className="lg:col-span-2">
             {/* ATO Section */}
-            <div className="bg-white border-2 border-[#002699] rounded-xl shadow-[0_0_15px_rgba(0,38,153,0.2)] h-full flex flex-col relative overflow-hidden">
-              <div className="bg-[#002699] p-3 print:p-1.5 rounded-t-lg flex justify-between items-center">
+            <div className="bg-white border-2 border-[#002699] rounded-xl shadow-[0_0_15px_rgba(0,38,153,0.2)] h-full flex flex-col relative overflow-hidden break-inside-avoid">
+              <div className="bg-[#002699] p-3 rounded-t-lg flex justify-between items-center">
                 <h3 className="font-bold text-[25px] tracking-wider text-white uppercase flex items-center gap-2">
                   <span className="bg-white text-[#002699] rounded-full w-8 h-8 flex items-center justify-center text-lg">1</span>
                   Ato
@@ -669,9 +798,16 @@ export default function App() {
                     <div className="p-2 font-medium text-slate-700 text-center">{sinal.label}</div>
                     <div className="p-2 relative">
                       {sinal.id === 1 && (
-                        <div className="absolute -top-1 -right-4 bg-yellow-400 text-blue-900 text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm z-10 animate-pulse print:hidden uppercase whitespace-nowrap">
-                          Preencha Aqui ★
-                        </div>
+                        <>
+                          <div className="absolute -top-1 -right-4 bg-yellow-400 text-blue-900 text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm z-10 animate-pulse print:hidden uppercase whitespace-nowrap" data-html2canvas-ignore="true">
+                            Preencha Aqui ★
+                          </div>
+                          {!sinal.data && (
+                            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-red-600 text-[10px] font-bold animate-blink whitespace-nowrap z-20">
+                              Preencha a data
+                            </div>
+                          )}
+                        </>
                       )}
                       <CurrencyInput value={sinal.valor} onChange={(v: number) => updateSinal(sinal.id, 'valor', v)} className="py-1 text-center bg-transparent hover:bg-transparent focus:bg-transparent" />
                     </div>
@@ -708,9 +844,17 @@ export default function App() {
                 </p>
                 <div className="space-y-2">
                   {[2, 3, 4].map(num => (
-                    <div key={num} className="flex justify-between items-center bg-white p-3 rounded-lg border border-slate-200 hover:border-blue-300 transition-colors shadow-sm">
-                      <span className="font-bold text-slate-500 text-xs uppercase tracking-wider">{num}x de</span>
-                      <span className="font-bold text-slate-900">{formatCurrency(valorAtoTotal / num)}</span>
+                    <div key={num} className="flex justify-between items-center bg-white p-3 rounded-lg border border-slate-200 hover:border-blue-300 transition-colors shadow-sm group">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-500 text-xs uppercase tracking-wider">{num}x de</span>
+                        <span className="font-bold text-slate-900">{formatCurrency(valorAtoTotal / num)}</span>
+                      </div>
+                      <button 
+                        onClick={() => applyAtoSuggestion(num)}
+                        className="bg-blue-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors uppercase tracking-wider shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      >
+                        Aplicar
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -720,11 +864,11 @@ export default function App() {
         </div>
 
         {/* PRE Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 print:grid-cols-2 gap-6 print:gap-4 items-start mb-6">
-          <div className="lg:col-span-2 print:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mb-6">
+          <div className="lg:col-span-2">
             {/* PRE Section */}
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm h-full flex flex-col">
-              <div className="bg-[#002699] p-3 print:p-1.5 rounded-t-xl flex justify-between items-center">
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm h-full flex flex-col break-inside-avoid">
+              <div className="bg-[#002699] p-3 rounded-t-xl flex justify-between items-center">
                 <h3 className="font-bold text-[25px] tracking-wider text-white uppercase flex items-center gap-2">
                   Pré-Chaves (INCC)
                 </h3>
@@ -756,11 +900,11 @@ export default function App() {
         </div>
 
         {/* BALOES Row */}
-        <div className={`grid grid-cols-1 lg:grid-cols-3 print:grid-cols-2 gap-6 print:gap-4 items-start mb-6 ${(baloesPercent === 0 || totalBaloes === 0) ? 'print:hidden' : ''}`}>
-          <div className="lg:col-span-2 print:col-span-2">
+        <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mb-6 ${(baloesPercent === 0 || totalBaloes === 0) ? 'print:hidden' : ''}`}>
+          <div className="lg:col-span-2">
             {/* BALOES Section */}
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm h-full flex flex-col">
-              <div className="bg-[#002699] p-3 print:p-1.5 rounded-t-xl flex justify-between items-center">
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm h-full flex flex-col break-inside-avoid">
+              <div className="bg-[#002699] p-3 rounded-t-xl flex justify-between items-center">
                 <h3 className="font-bold text-[25px] tracking-wider text-white uppercase flex items-center gap-2">
                   Balões
                 </h3>
@@ -834,11 +978,11 @@ export default function App() {
         </div>
 
         {/* POS Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 print:grid-cols-2 gap-6 print:gap-4 items-start mb-6">
-          <div className="lg:col-span-2 print:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mb-6">
+          <div className="lg:col-span-2">
             {/* POS Section */}
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm h-full flex flex-col">
-              <div className="bg-[#002699] p-3 print:p-1.5 rounded-t-xl flex justify-between items-center">
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm h-full flex flex-col break-inside-avoid">
+              <div className="bg-[#002699] p-3 rounded-t-xl flex justify-between items-center">
                 <div className="flex flex-col">
                   <h3 className="font-bold text-[25px] tracking-wider text-white uppercase flex items-center gap-2">
                     Pós-Chaves (1% + IPCA)
@@ -873,14 +1017,25 @@ export default function App() {
         </div>
 
         {/* Footer Text */}
-        <div className="mt-8 p-6 bg-slate-50 rounded-xl border border-slate-200 text-sm text-slate-600 space-y-3 print:mt-4 print:p-4 print:text-[10px]">
+        <div className="mt-8 p-6 bg-slate-50 rounded-xl border border-slate-200 text-sm text-slate-600 space-y-3">
           <p>1. Essa é apenas uma simulação, para valores exatos seria necessário a aprovação de crédito e inserção dos dados dentro do sistema da construtora.</p>
           <p>2. Essa proposta não garante a reserva da unidade em questão.</p>
           <p>3. Esta é uma proposta simulada com validade condicionada à política comercial do mês vigente. Os valores e condições definitivos estão sujeitos à validação e reserva oficial dentro do sistema da Direcional.</p>
         </div>
-      </main>
 
-      {/* Print Modal */}
+        {/* QR Code Section */}
+        {EMPREENDIMENTOS[empreendimento] && (
+          <div className="mt-8 flex flex-col items-center justify-center p-6 bg-white rounded-xl border border-slate-200 shadow-sm break-inside-avoid">
+            <QRCodeSVG value={EMPREENDIMENTOS[empreendimento].link} size={100} />
+            <p className="mt-3 text-slate-700 font-bold text-sm uppercase tracking-wider">
+              Escaneie para acessar os arquivos do empreendimento
+            </p>
+          </div>
+        )}
+      </main>
+    </div>
+
+    {/* Print Modal */}
       {showPrintModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 print:hidden">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden relative animate-in fade-in zoom-in duration-300">
