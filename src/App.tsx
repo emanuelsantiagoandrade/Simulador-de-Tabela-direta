@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Printer, AlertTriangle, ChevronDown, ChevronUp, Settings } from 'lucide-react';
+import { X, Printer, AlertTriangle, ChevronDown, ChevronUp, Settings, CheckCircle } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { EmpreendimentosManager, EmpreendimentoData, defaultEmpreendimentos } from './components/EmpreendimentosManager';
 
@@ -89,7 +89,7 @@ const PercentInput = ({ value, onChange, className = '', readOnly = false }: any
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
         readOnly={readOnly}
-        step="0.01"
+        step="0.000001"
         className={`w-full px-3 py-2 border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 focus:bg-blue-50/30 transition-colors outline-none text-right pr-8 font-medium ${readOnly ? 'bg-transparent text-gray-700 cursor-default hover:border-transparent' : 'bg-gray-50/50'} ${className}`}
       />
       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium group-focus-within:text-blue-600 transition-colors">%</span>
@@ -340,6 +340,7 @@ export default function App() {
     return defaultEmpreendimentos;
   });
   const [showEmpManager, setShowEmpManager] = useState(false);
+  const [tipoTabela, setTipoTabela] = useState<'direta' | 'investidor'>('direta');
 
   const [nomeCliente, setNomeCliente] = useState('');
   const [empreendimento, setEmpreendimento] = useState('');
@@ -397,37 +398,57 @@ export default function App() {
     let ato = atoPercent;
     let pre = prePercent;
     let baloes = baloesPercent;
-    let pos = posPercent;
+    let pos = tipoTabela === 'investidor' ? 0 : posPercent;
 
     if (source === 'ato') {
       ato = newVal;
-      // Ato mexe no Pré para manter o equilíbrio de 100%
-      pre = 100 - ato - baloes - pos;
+      if (tipoTabela === 'investidor') {
+        pre = 100 - ato - baloes;
+      } else {
+        pre = 100 - ato - baloes - pos;
+      }
     } else if (source === 'baloes') {
       baloes = newVal;
-      // Balões mexe no Pré para manter o equilíbrio de 100%
-      pre = 100 - ato - baloes - pos;
+      if (tipoTabela === 'investidor') {
+        pre = 100 - ato - baloes;
+      } else {
+        pre = 100 - ato - baloes - pos;
+      }
     } else if (source === 'pre') {
       pre = newVal;
-      // Pré mexe no Pós (Regra: tudo que for colocado a mais no pré deve ser subtraído do pós)
-      pos = 100 - ato - baloes - pre;
-    } else if (source === 'pos') {
+      if (tipoTabela === 'investidor') {
+        // If pre is changed in investor mode, we adjust ato or baloes? 
+        // User probably expects pre to be 100 - ato - baloes automatically
+        // but if they edit PRE, we adjust baloes to compensate.
+        baloes = 100 - ato - pre;
+      } else {
+        pos = 100 - ato - baloes - pre;
+      }
+    } else if (source === 'pos' && tipoTabela !== 'investidor') {
       pos = newVal;
-      // Pós mexe no Pré para manter o equilíbrio de 100%
       pre = 100 - ato - baloes - pos;
     }
 
-    // --- Ajustes de Segurança (Apenas para evitar valores negativos absurdos) ---
-    
-    // Se o campo de ajuste (o que não foi editado) ficar negativo, 
-    // tentamos compensar nos outros campos para manter os 100%
-    if (pre < 0 && source !== 'pre') {
-      pos += pre;
-      pre = 0;
-    }
-    if (pos < 0 && source !== 'pos') {
-      pre += pos;
+    // --- Ajustes de Segurança ---
+    if (tipoTabela === 'investidor') {
       pos = 0;
+      if (pre < 0) {
+        ato += pre;
+        pre = 0;
+      }
+      if (ato < 0) {
+        baloes += ato;
+        ato = 0;
+      }
+    } else {
+      if (pre < 0 && source !== 'pre') {
+        pos += pre;
+        pre = 0;
+      }
+      if (pos < 0 && source !== 'pos') {
+        pre += pos;
+        pos = 0;
+      }
     }
 
     // Garante que os valores finais não sejam negativos
@@ -438,16 +459,36 @@ export default function App() {
 
     // Ajuste final para garantir soma 100% exata
     const soma = ato + pre + baloes + pos;
-    if (Math.abs(soma - 100) > 0.01) {
-      if (source === 'pre') pos = Number((100 - ato - baloes - pre).toFixed(2));
-      else pre = Number((100 - ato - baloes - pos).toFixed(2));
+    if (Math.abs(soma - 100) > 0.000001) {
+      if (tipoTabela === 'investidor') {
+        pre = Number((100 - ato - baloes).toFixed(6));
+      } else if (source === 'pre') {
+        pos = Number((100 - ato - baloes - pre).toFixed(6));
+      } else {
+        pre = Number((100 - ato - baloes - pos).toFixed(6));
+      }
     }
 
-    setAtoPercent(Number(ato.toFixed(2)));
-    setPrePercent(Number(pre.toFixed(2)));
-    setBaloesPercent(Number(baloes.toFixed(2)));
-    setPosPercent(Number(pos.toFixed(2)));
+    setAtoPercent(Number(ato.toFixed(6)));
+    setPrePercent(Number(pre.toFixed(6)));
+    setBaloesPercent(Number(baloes.toFixed(6)));
+    setPosPercent(Number(pos.toFixed(6)));
   };
+
+  // Effect to adjust percentages when table type changes
+  useEffect(() => {
+    if (tipoTabela === 'investidor') {
+      const remainingForPre = Math.max(0, 100 - atoPercent - baloesPercent);
+      setPosPercent(0);
+      setPrePercent(Number(remainingForPre.toFixed(6)));
+    } else {
+      // Logic for returning to 'direta'
+      if (posPercent === 0) {
+        setPosPercent(60);
+        setPrePercent(Math.max(0, Number((100 - atoPercent - baloesPercent - 60).toFixed(6))));
+      }
+    }
+  }, [tipoTabela]);
 
   // Auto-calculate months until delivery when delivery date changes
   useEffect(() => {
@@ -507,16 +548,27 @@ export default function App() {
   const valorParcelaPos = posParcelas > 0 ? valorPosTotal / posParcelas : 0;
 
   const totalPercent = atoPercent + baloesPercent + prePercent + posPercent;
-  const isPercentExactly100 = Math.abs(totalPercent - 100) < 0.01;
+  const isPercentExactly100 = Math.abs(totalPercent - 100) < 0.0001;
 
   const totalPagoReal = totalSinais + totalBaloes + valorPreTotal + valorPosTotal;
-  const isValorValid = Math.abs(totalPagoReal - valorAposDescontos) < 0.01;
+  const isValorValid = Math.abs(totalPagoReal - valorAposDescontos) < 0.1;
 
-  // Auto-fill Ato 1 if total signals is 0
+  // Auto-fill or adjust Ato 1 based on valorAtoTotal
   useEffect(() => {
+    const utilizedSignals = sinais.filter(s => s.valor > 0);
     const currentTotal = sinais.reduce((acc, s) => acc + s.valor, 0);
+    
+    // Case 1: All signals are 0, initial state
     if (valorAtoTotal > 0 && currentTotal === 0) {
       setSinais(prev => prev.map(s => s.id === 1 ? { ...s, valor: valorAtoTotal } : s));
+      return;
+    }
+
+    // Case 2: Only Ato 1 has value, adjust it to match valorAtoTotal
+    if (utilizedSignals.length === 1 && utilizedSignals[0].label === 'Ato 1') {
+      if (Math.abs(utilizedSignals[0].valor - valorAtoTotal) > 0.01) {
+        setSinais(prev => prev.map(s => s.id === 1 ? { ...s, valor: valorAtoTotal } : s));
+      }
     }
   }, [valorAtoTotal]);
 
@@ -577,29 +629,90 @@ export default function App() {
     setSinais(newSinais);
   };
 
+  const applyBaloesSuggestion = (num: number) => {
+    const valorParcela = valorBaloesTotal / num;
+    const now = new Date();
+    let startYear = now.getFullYear();
+    let startMonth;
+
+    const currentMonth = now.getMonth();
+    const currentDay = now.getDate();
+
+    if (currentMonth < 5 || (currentMonth === 5 && currentDay <= 15)) {
+      startMonth = 5; // Jun
+    } else if (currentMonth < 11 || (currentMonth === 11 && currentDay <= 15)) {
+      startMonth = 11; // Dec
+    } else {
+      startMonth = 5;
+      startYear++;
+    }
+
+    const newBaloes = baloes.map((b, idx) => {
+      if (idx < num) {
+        let finalMonth = startMonth;
+        let finalYear = startYear;
+
+        for (let i = 0; i < idx; i++) {
+          if (finalMonth === 5) {
+            finalMonth = 11;
+          } else {
+            finalMonth = 5;
+            finalYear++;
+          }
+        }
+
+        const date = new Date(finalYear, finalMonth, 15);
+        return { 
+          ...b, 
+          valor: valorParcela, 
+          data: date.toISOString().split('T')[0] 
+        };
+      }
+      return { ...b, valor: 0, data: '' };
+    });
+    setBaloes(newBaloes);
+  };
+
   const currentEmpData = empreendimentosList.find(emp => emp.nome === empreendimento);
 
   return (
     <div className="min-h-screen bg-slate-50 pb-12 font-sans text-gray-900">
-      {/* Print Button - Top Right */}
-      <div className="max-w-6xl mx-auto px-4 pt-6 flex justify-end gap-3 print:hidden">
-        <button 
-          onClick={() => {
-            try {
-              if (window.self !== window.top) {
+      {/* Table Type Selector and Print Button */}
+      <div className="max-w-6xl mx-auto px-4 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 print:hidden">
+        <div className="flex bg-slate-200 p-1 rounded-xl shadow-inner">
+          <button
+            onClick={() => setTipoTabela('direta')}
+            className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${tipoTabela === 'direta' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            Tabela Direta
+          </button>
+          <button
+            onClick={() => setTipoTabela('investidor')}
+            className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${tipoTabela === 'investidor' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            Tabela Investidor
+          </button>
+        </div>
+        
+        <div className="flex gap-3">
+          <button 
+            onClick={() => {
+              try {
+                if (window.self !== window.top) {
+                  setShowPrintModal(true);
+                } else {
+                  window.print();
+                }
+              } catch (e) {
                 setShowPrintModal(true);
-              } else {
-                window.print();
               }
-            } catch (e) {
-              setShowPrintModal(true);
-            }
-          }}
-          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
-        >
-          <Printer className="w-5 h-5" />
-          Imprimir Plano
-        </button>
+            }}
+            className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
+          >
+            <Printer className="w-5 h-5" />
+            Imprimir Plano
+          </button>
+        </div>
       </div>
 
       <div id="pdf-capture-container" className="bg-slate-50">
@@ -630,7 +743,9 @@ export default function App() {
                 }}
               ></div>
               <div className="relative py-4 text-center">
-                <h2 className="text-white font-bold text-xl sm:text-2xl tracking-[0.4em] uppercase ml-[0.4em]">Proposta Tabela Direta</h2>
+                <h2 className="text-white font-bold text-xl sm:text-2xl tracking-[0.4em] uppercase ml-[0.4em]">
+                  Proposta {tipoTabela === 'direta' ? 'Tabela Direta' : 'Tabela Investidor'}
+                </h2>
               </div>
             </div>
           </div>
@@ -642,29 +757,51 @@ export default function App() {
           className="max-w-6xl mx-auto px-4 space-y-6"
         >
           
-          {/* Validation Warnings */}
-        {(!isPercentExactly100 || !isValorValid) && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 flex flex-col gap-2 print:hidden shadow-sm rounded-r-md">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="text-red-500 w-5 h-5" />
-              <h3 className="text-red-800 font-bold">Atenção: Inconsistências no Plano de Pagamento</h3>
-            </div>
-            <ul className="list-disc pl-10 text-red-700 text-sm space-y-1">
-              {!isPercentExactly100 && (
-                <li>
-                  As porcentagens de Ato, Pré, Pós e Balões não devem passar (ou faltar) de 100%. 
-                  Total atual: <strong>{totalPercent.toFixed(2)}%</strong>
-                </li>
-              )}
-              {!isValorValid && (
-                <li>
-                  Os valores pagos no Ato (Sinais preenchidos), Pré, Pós e Balões não devem ser diferentes do Valor após descontos ({formatCurrency(valorAposDescontos)}). 
-                  Soma atual: <strong>{formatCurrency(totalPagoReal)}</strong>
-                </li>
-              )}
-            </ul>
+          {/* Validation Status */}
+          <div className="print:hidden space-y-4">
+            {(!isPercentExactly100 || !isValorValid) ? (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 flex flex-col gap-2 shadow-sm rounded-r-md transition-all">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="text-red-500 w-5 h-5" />
+                  <h3 className="text-red-800 font-bold uppercase tracking-wider text-sm">Inconsistências no Plano</h3>
+                </div>
+                <ul className="list-disc pl-10 text-red-700 text-xs space-y-1 font-medium">
+                  {!isPercentExactly100 && (
+                    <li>
+                      {tipoTabela === 'direta' 
+                        ? 'Soma das porcentagens deve ser 100%.' 
+                        : 'Ato + Mensais + Balões deve ser 100%.'
+                      } 
+                      Atual: <span className="font-bold">{totalPercent.toFixed(4)}%</span>
+                    </li>
+                  )}
+                  {!isValorValid && (
+                    <li>
+                      {tipoTabela === 'direta'
+                        ? 'Soma dos valores (Ato + Parcelas + Balões) diferente do total.'
+                        : 'Pagamentos não somam o valor total do imóvel.'
+                      }
+                      Faltam/Sobram: <span className="font-bold">{formatCurrency(valorAposDescontos - totalPagoReal)}</span>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            ) : (
+              <div className="bg-emerald-50 border-l-4 border-emerald-500 p-4 flex items-center justify-between shadow-sm rounded-r-md transition-all">
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="text-emerald-500 w-5 h-5" />
+                  <div>
+                    <h3 className="text-emerald-800 font-bold uppercase tracking-wider text-sm">Plano Validado</h3>
+                    <p className="text-emerald-600 text-[10px] font-medium">As porcentagens e valores estão perfeitamente equilibrados.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4 text-[10px] font-bold text-emerald-700 uppercase tracking-widest bg-white/50 px-3 py-1 rounded-full border border-emerald-100">
+                  <span>Soma: 100%</span>
+                  <span>Total: {formatCurrency(totalPagoReal)}</span>
+                </div>
+              </div>
+            )}
           </div>
-        )}
 
         {/* Info and Values side by side */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start break-inside-avoid">
@@ -870,7 +1007,7 @@ export default function App() {
             <div className="bg-white border border-slate-200 rounded-xl shadow-sm h-full flex flex-col break-inside-avoid">
               <div className="bg-[#002699] p-3 rounded-t-xl flex justify-between items-center">
                 <h3 className="font-bold text-[25px] tracking-wider text-white uppercase flex items-center gap-2">
-                  Pré-Chaves (INCC)
+                  {tipoTabela === 'direta' ? 'Pré-Chaves (INCC)' : 'Mensais (Sem Correção)'}
                 </h3>
               </div>
               
@@ -962,9 +1099,17 @@ export default function App() {
                 </p>
                 <div className="space-y-2">
                   {[2, 3, 4, 5, 6].map(num => (
-                    <div key={num} className="flex justify-between items-center bg-white p-3 rounded-lg border border-slate-200 hover:border-blue-300 transition-colors shadow-sm">
-                      <span className="font-bold text-slate-500 text-xs uppercase tracking-wider">{num}x de</span>
-                      <span className="font-bold text-blue-700">{formatCurrency(valorBaloesTotal / num)}</span>
+                    <div key={num} className="flex justify-between items-center bg-white p-3 rounded-lg border border-slate-200 hover:border-blue-300 transition-colors shadow-sm group">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-500 text-xs uppercase tracking-wider">{num}x de</span>
+                        <span className="font-bold text-blue-700">{formatCurrency(valorBaloesTotal / num)}</span>
+                      </div>
+                      <button 
+                        onClick={() => applyBaloesSuggestion(num)}
+                        className="bg-blue-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors uppercase tracking-wider shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      >
+                        Aplicar
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -978,43 +1123,45 @@ export default function App() {
         </div>
 
         {/* POS Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mb-6">
-          <div className="lg:col-span-2">
-            {/* POS Section */}
-            <div className="bg-white border border-slate-200 rounded-xl shadow-sm h-full flex flex-col break-inside-avoid">
-              <div className="bg-[#002699] p-3 rounded-t-xl flex justify-between items-center">
-                <div className="flex flex-col">
-                  <h3 className="font-bold text-[25px] tracking-wider text-white uppercase flex items-center gap-2">
-                    Pós-Chaves (1% + IPCA)
-                  </h3>
-                  <span className="text-[15px] text-white/80">Máximo permitido: 60%</span>
+        {tipoTabela === 'direta' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mb-6">
+            <div className="lg:col-span-2">
+              {/* POS Section */}
+              <div className="bg-white border border-slate-200 rounded-xl shadow-sm h-full flex flex-col break-inside-avoid">
+                <div className="bg-[#002699] p-3 rounded-t-xl flex justify-between items-center">
+                  <div className="flex flex-col">
+                    <h3 className="font-bold text-[25px] tracking-wider text-white uppercase flex items-center gap-2">
+                      Pós-Chaves (1% + IPCA)
+                    </h3>
+                    <span className="text-[15px] text-white/80">Máximo permitido: 60%</span>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 p-1">
-                <Field label="Porcentagem (%)">
-                  <PercentInput value={posPercent} onChange={(val: number) => handlePercentChange('pos', val)} className="py-1 text-lg font-bold text-blue-800 bg-transparent hover:bg-transparent focus:bg-transparent px-0" />
-                </Field>
-                <Field label="Valor Total">
-                  <div className="py-1 text-lg font-bold text-blue-800 px-0">{formatCurrency(valorPosTotal)}</div>
-                </Field>
-              </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 p-1">
+                  <Field label="Porcentagem (%)">
+                    <PercentInput value={posPercent} onChange={(val: number) => handlePercentChange('pos', val)} className="py-1 text-lg font-bold text-blue-800 bg-transparent hover:bg-transparent focus:bg-transparent px-0" />
+                  </Field>
+                  <Field label="Valor Total">
+                    <div className="py-1 text-lg font-bold text-blue-800 px-0">{formatCurrency(valorPosTotal)}</div>
+                  </Field>
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 p-1 border-t border-slate-100">
-                <Field label="Qtd. Parcelas">
-                  <input type="number" value={posParcelas} onChange={e => setPosParcelas(parseInt(e.target.value) || 0)} className="w-full outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1 text-lg font-bold text-blue-800" />
-                </Field>
-                <Field label="Valor da Parcela">
-                  <div className="py-1 text-lg font-bold text-blue-800">{formatCurrency(valorParcelaPos)}</div>
-                </Field>
-                <Field label="Data de Início">
-                  <input type="date" value={posDataInicio} onChange={e => setPosDataInicio(e.target.value)} className="w-full outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1 font-medium" />
-                </Field>
+                <div className="grid grid-cols-1 sm:grid-cols-3 p-1 border-t border-slate-100">
+                  <Field label="Qtd. Parcelas">
+                    <input type="number" value={posParcelas} onChange={e => setPosParcelas(parseInt(e.target.value) || 0)} className="w-full outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1 text-lg font-bold text-blue-800" />
+                  </Field>
+                  <Field label="Valor da Parcela">
+                    <div className="py-1 text-lg font-bold text-blue-800">{formatCurrency(valorParcelaPos)}</div>
+                  </Field>
+                  <Field label="Data de Início">
+                    <input type="date" value={posDataInicio} onChange={e => setPosDataInicio(e.target.value)} className="w-full outline-none bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-600 transition-colors py-1 font-medium" />
+                  </Field>
+                </div>
+                <PosSimulation parcelas={posParcelas} valorBase={valorParcelaPos} dataInicio={posDataInicio} />
               </div>
-              <PosSimulation parcelas={posParcelas} valorBase={valorParcelaPos} dataInicio={posDataInicio} />
             </div>
           </div>
-        </div>
+        )}
 
         {/* Footer Text */}
         <div className="mt-8 p-6 bg-slate-50 rounded-xl border border-slate-200 text-sm text-slate-600 space-y-3">
