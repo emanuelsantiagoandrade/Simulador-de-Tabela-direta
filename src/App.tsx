@@ -10,21 +10,21 @@ const EMPREENDIMENTOS: Record<string, { data: string, link: string }> = {
   "Estilo Fátima": { data: "2027-03-30", link: "https://drive.google.com/drive/folders/14hOJLPrMCvHRzk9VGjxjQNoPrRj_nUx2?usp=drive_link" },
   "Estilo Passaré": { data: "2026-10-31", link: "https://drive.google.com/drive/folders/1GvKhDsrZ4rnEa-NuNymCKwOezcv4CGXf?usp=drive_link" },
   "Estilo Praia": { data: "2026-10-31", link: "https://drive.google.com/drive/folders/1jqFVnn8Pf5Qd-aR-GsHLkkRVCJ3a-JvU?usp=drive_link" },
+  "Jandaia": { data: "2028-09-30", link: "https://drive.google.com/drive/folders/1_ojnKIEd8QPPlkCA7U65_AR2lU589a5h?usp=drive_link" },
   "Lúmina Fátima": { data: "2028-06-30", link: "https://drive.google.com/drive/folders/1gdRJMDH2e2Ecv8U8bb7C1uG-MWeETLCo?usp=drive_link" },
-  "MyPlace Benfica": { data: "Entregue", link: "https://drive.google.com/drive/folders/1nqzfTcIAtUj9sdAgXlKzcKeBfVv3NlMZ?usp=drive_link" },
+  "My Place Benfica": { data: "2025-08-31", link: "https://drive.google.com/drive/folders/1nqzfTcIAtUj9sdAgXlKzcKeBfVv3NlMZ?usp=drive_link" },
   "Nature Arbo": { data: "2028-05-31", link: "https://drive.google.com/drive/folders/1f_OG7VKMFagDX_UoxWK8-SgeX15kfYaN?usp=drive_link" },
-  "Nature Eusébio": { data: "2028-07-31", link: "https://drive.google.com/drive/folders/1AfU2DAam5h6s6wVmSzWnTbOcUUKiNHAg?usp=drive_link" },
+  "Nature Eusébio": { data: "2028-08-31", link: "https://drive.google.com/drive/folders/1AfU2DAam5h6s6wVmSzWnTbOcUUKiNHAg?usp=drive_link" },
   "Orizon Rooftop": { data: "2029-04-30", link: "https://drive.google.com/drive/folders/1QvUfUg3-27uVDQMpAV9z60EAWCpdsMxC?usp=drive_link" },
-  "Reserva Flora": { data: "Entregue", link: "https://drive.google.com/drive/folders/1aQGlqupGsA672ilyPUeMxUqNRkSBTBAE?usp=drive_link" },
-  "Seano Beach": { data: "2028-07-30", link: "https://drive.google.com/drive/folders/1Ou40hjybFktfT3-zQZFPqRtwdHxS8DmN?usp=drive_link" },
-  "Viva Nova Caucaia": { data: "2027-04-30", link: "https://drive.google.com/drive/folders/1VelEu-DcrA8R763DiG3ifwebVwkNNPdt?usp=drive_link" },
+  "Parque": { data: "2025-04-30", link: "https://drive.google.com/drive/folders/1RFswrgGeE2wOTAVt2a3uFbOXcl7CtN89?usp=drive_link" },
+  "Reserva Flora": { data: "2025-07-01", link: "https://drive.google.com/drive/folders/1aQGlqupGsA672ilyPUeMxUqNRkSBTBAE?usp=drive_link" },
+  "Seano Beach": { data: "2028-07-31", link: "https://drive.google.com/drive/folders/1Ou40hjybFktfT3-zQZFPqRtwdHxS8DmN?usp=drive_link" },
+  "Vida Nova Caucaia": { data: "2027-04-30", link: "https://drive.google.com/drive/folders/1VelEu-DcrA8R763DiG3ifwebVwkNNPdt?usp=drive_link" },
   "Viva Vida Coqueiros": { data: "2027-09-30", link: "https://drive.google.com/drive/folders/1I8YkjufrVCB5UDVd867P-Y5QYGaQaE-_?usp=drive_link" },
-  "Viva Vida Jandaia": { data: "2028-06-30", link: "https://drive.google.com/drive/folders/1_ojnKIEd8QPPlkCA7U65_AR2lU589a5h?usp=drive_link" },
   "Viva Vida Maracanaú": { data: "2027-06-30", link: "https://drive.google.com/drive/folders/1x_3GxAQIth_noN4qZjrawwZ6IO35Ibyf?usp=drive_link" },
-  "Viva Vida Parque": { data: "Entregue", link: "https://drive.google.com/drive/folders/1RFswrgGeE2wOTAVt2a3uFbOXcl7CtN89?usp=drive_link" },
   "Viva Vida Siqueira": { data: "2026-09-30", link: "https://drive.google.com/drive/folders/13h5L-fAHtaSusnKoB4t7j7qPbD9eH4Oc?usp=drive_link" },
-  "Viva Vida Sul": { data: "2028-04-30", link: "https://drive.google.com/drive/folders/1rag3UlzyFIkTVMkTxWFO79GUeOGtGZpM?usp=drive_link" },
-  "Viva Vida Tropical": { data: "Entregue", link: "https://drive.google.com/drive/folders/1WSWGcOTs_8_YgWJINXMjyOi391bNuSQN?usp=drive_link" }
+  "Viva Vida Sul": { data: "2028-06-30", link: "https://drive.google.com/drive/folders/1rag3UlzyFIkTVMkTxWFO79GUeOGtGZpM?usp=drive_link" },
+  "Viva Vida Tropical": { data: "2026-09-30", link: "https://drive.google.com/drive/folders/1WSWGcOTs_8_YgWJINXMjyOi391bNuSQN?usp=drive_link" }
 };
 
 // --- Utilities ---
@@ -1168,6 +1168,9 @@ export default function App() {
           <p>1. Essa é apenas uma simulação, para valores exatos seria necessário a aprovação de crédito e inserção dos dados dentro do sistema da construtora.</p>
           <p>2. Essa proposta não garante a reserva da unidade em questão.</p>
           <p>3. Esta é uma proposta simulada com validade condicionada à política comercial do mês vigente. Os valores e condições definitivos estão sujeitos à validação e reserva oficial dentro do sistema da Direcional.</p>
+          <div className="pt-4 border-t border-slate-200 text-[10px] text-slate-400 text-right italic">
+            Última atualização em: {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+          </div>
         </div>
 
         {/* QR Code Section */}
